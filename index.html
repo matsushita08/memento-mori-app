@@ -3,25 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>メメントモリアプリ | LAST SAVE</title>
+<title>最後の既読 | 残された通知</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body, #root { min-height: 100%; }
   body {
     background:
-      radial-gradient(circle at 50% 0%, rgba(255, 236, 224, 0.9), transparent 34%),
-      linear-gradient(145deg, #f8eee8 0%, #efe0da 45%, #dcc8c4 100%);
+      radial-gradient(circle at 50% 0%, rgba(255, 239, 229, 0.92), transparent 34%),
+      linear-gradient(145deg, #f7eee9 0%, #e7d9d4 45%, #d6c2bd 100%);
     color: #fff8f4;
     font-family: Georgia, "Hiragino Mincho ProN", "Yu Mincho", serif;
   }
-  .app-stage {
+  button, input, textarea { font: inherit; }
+  button { -webkit-tap-highlight-color: transparent; }
+  textarea { resize: none; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: #3b3032; border-radius: 999px; }
+
+  .stage {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 28px;
   }
-  .phone-shell {
+  .phone {
     width: min(100%, 430px);
     height: min(860px, calc(100vh - 56px));
     min-height: 640px;
@@ -30,47 +36,182 @@
     background: linear-gradient(145deg, #21191b, #0f0c0d);
     box-shadow: 0 28px 80px rgba(61, 38, 41, 0.28), inset 0 0 0 1px rgba(255, 248, 244, 0.08);
   }
-  .phone-screen {
+  .screen {
     position: relative;
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     border-radius: 30px;
-    background: #171214;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(151, 105, 109, 0.22), transparent 34%),
+      linear-gradient(180deg, #201719 0%, #171214 68%, #141011 100%);
     box-shadow: inset 0 0 0 1px rgba(255, 248, 244, 0.06);
   }
-  .phone-notch {
-    position: absolute;
+  .notch {
+    position: sticky;
     top: 8px;
-    left: 50%;
-    z-index: 200;
+    z-index: 20;
     width: 96px;
     height: 20px;
-    transform: translateX(-50%);
+    margin: 8px auto 0;
     border-radius: 999px;
-    background: #120f10;
-    opacity: 0.88;
-    pointer-events: none;
+    background: #100d0e;
+    opacity: 0.9;
   }
+  .page { min-height: calc(100% - 28px); padding: 38px 26px 34px; }
+  .center { display: flex; min-height: calc(100% - 28px); flex-direction: column; justify-content: center; }
+  .eyebrow { color: #d99aa3; font-size: 10px; letter-spacing: 3px; margin-bottom: 14px; }
+  .muted { color: #a9979a; }
+  .soft { color: #d9c9c7; }
+  .title {
+    color: #ffd0d6;
+    font-size: 30px;
+    line-height: 1.25;
+    letter-spacing: 3px;
+    text-shadow: 0 14px 38px rgba(217, 154, 163, 0.28);
+  }
+  .body {
+    color: #d9c9c7;
+    font-size: 14px;
+    line-height: 2.1;
+    white-space: pre-line;
+  }
+  .timebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    color: #b7a4a6;
+    font-size: 11px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(255,248,244,0.1);
+    border-radius: 999px;
+    padding: 7px 11px;
+    color: #e8c2c7;
+    background: rgba(255,248,244,0.04);
+    font-size: 11px;
+  }
+  .btn {
+    width: 100%;
+    border: 1px solid #94646b;
+    border-radius: 16px;
+    padding: 14px 16px;
+    background: rgba(255,248,244,0.04);
+    color: #ffd8dd;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.15s ease;
+  }
+  .btn:hover { background: #d99aa3; color: #171214; box-shadow: 0 12px 26px rgba(217,154,163,0.18); }
+  .btn.primary { background: #d99aa3; color: #171214; border-color: #d99aa3; text-align: center; }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    border: 1px solid rgba(255,248,244,0.08);
+    border-radius: 18px;
+    background: rgba(255,248,244,0.035);
+    padding: 16px;
+  }
+  .notification {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border: 1px solid rgba(255,248,244,0.08);
+    border-radius: 18px;
+    background: rgba(255,248,244,0.045);
+    padding: 13px 14px;
+    animation: rise 0.35s ease both;
+  }
+  .icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border-radius: 11px;
+    background: rgba(255,248,244,0.08);
+    font-size: 17px;
+  }
+  .message-name { color: #fff8f4; font-size: 13px; margin-bottom: 4px; }
+  .message-text { color: #a9979a; font-size: 12px; line-height: 1.7; }
+  .countdown {
+    color: #ffd0d6;
+    font-size: 72px;
+    line-height: 1;
+    letter-spacing: 2px;
+    text-align: center;
+    text-shadow: 0 18px 48px rgba(217,154,163,0.26);
+  }
+  .app-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
+  .app-icon {
+    border: 0;
+    background: transparent;
+    color: #d9c9c7;
+    text-align: center;
+    cursor: pointer;
+  }
+  .app-icon span {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 8px;
+    border-radius: 17px;
+    background: rgba(255,248,244,0.075);
+    font-size: 24px;
+  }
+  .app-icon small { display: block; color: #a9979a; font-size: 11px; }
+  .memory {
+    min-height: 112px;
+    border-radius: 18px;
+    padding: 16px;
+    background: linear-gradient(145deg, rgba(255,248,244,0.10), rgba(217,154,163,0.08));
+    border: 1px solid rgba(255,248,244,0.1);
+  }
+  .draft {
+    width: 100%;
+    min-height: 132px;
+    border: 1px solid rgba(255,248,244,0.1);
+    border-radius: 16px;
+    background: rgba(12,10,10,0.38);
+    color: #fff8f4;
+    padding: 14px;
+    outline: none;
+    line-height: 1.8;
+  }
+  .question { margin-bottom: 18px; }
+  .question label { display: block; color: #d9c9c7; font-size: 13px; line-height: 1.8; margin-bottom: 8px; }
+  .question input {
+    width: 100%;
+    border: 1px solid rgba(255,248,244,0.1);
+    border-radius: 14px;
+    background: rgba(12,10,10,0.35);
+    color: #fff8f4;
+    padding: 12px 13px;
+    outline: none;
+  }
+  .testament {
+    border-left: 2px solid #d99aa3;
+    padding-left: 16px;
+    color: #fff8f4;
+    font-size: 15px;
+    line-height: 2.25;
+    white-space: pre-line;
+  }
+  .blink { animation: blink 1.2s ease infinite; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes blink { 50% { opacity: 0.25; } }
+
   @media (max-width: 560px) {
-    .app-stage { padding: 0; }
-    .phone-shell {
-      width: 100%;
-      height: 100vh;
-      min-height: 100vh;
-      padding: 0;
-      border-radius: 0;
-      box-shadow: none;
-    }
-    .phone-screen { border-radius: 0; }
-    .phone-notch { display: none; }
+    .stage { padding: 0; }
+    .phone { width: 100%; height: 100vh; min-height: 100vh; padding: 0; border-radius: 0; box-shadow: none; }
+    .screen { border-radius: 0; }
+    .notch { display: none; }
+    .page { padding-top: 44px; }
   }
-  @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
-  @keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
-  textarea { resize: none; }
-  ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-thumb { background: #3a2b2f; }
 </style>
 </head>
 <body>
@@ -79,664 +220,355 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel">
-const { useState, useEffect } = React;
+const { useEffect, useMemo, useState } = React;
 
-const NOTIFICATIONS = [
-  { app: "Instagram", icon: "📸", msg: "あなたの投稿に38件のいいね" },
-  { app: "LINE",      icon: "💬", msg: "田中から「今夜飲みに行かない？」" },
-  { app: "メール",    icon: "📧", msg: "【重要】来週の会議資料の件" },
-  { app: "Twitter",   icon: "🐦", msg: "トレンド：#月曜日あるある" },
-  { app: "仕事",      icon: "💼", msg: "山田部長：「例の件、進捗どうですか」" },
+const notifications = [
+  { app: "仕事", icon: "💼", text: "山田部長：例の資料、今日中に確認できますか？" },
+  { app: "母", icon: "📞", text: "不在着信 2件" },
+  { app: "LINE", icon: "💬", text: "健太：どうでもいい話なんだけどさ" },
+  { app: "SNS", icon: "♡", text: "あなたの投稿に38件のいいね" },
 ];
 
-const CHAPTERS = [
-  {
-    id: 1, daysLeft: 89, label: "DAY 1",
-    title: "宣告の翌朝",
-    situation: "朝、目が覚めた。\n\nカーテンの隙間から光が入ってくる。\nいつもと同じ朝のはずだった。\n\n昨日、医師に言われた言葉が、\nまだ頭の中で鳴っている。",
-    event: "📱 スマートフォンが震えた。\nお母さんから着信。",
-    choices: [
-      { id: "A", text: "今すぐ電話に出る", impact: "family",
-        result: "「もしもし…どうだった？」\n\n母の声が、いつもより少し低かった。\nあなたはまだ、言葉が出なかった。\n\n沈黙の中で、電話口の母が泣いているのが分かった。" },
-      { id: "B", text: "「あとで電話する」とだけ送る", impact: "solo",
-        result: "「了解」の三文字を打った。\n\n自分の指が、少し震えていた。\nスマホを伏せて、天井を見た。\n\nこのまま時間が止まればいいと思った。" },
-      { id: "C", text: "電話を切って、一人でいる", impact: "solo",
-        result: "着信が切れた。\n\n部屋はとても静かだった。\n自分の呼吸だけが聞こえた。\n\nひとりでいることが、今は必要だった。" },
-    ],
-    reflection: "今日、あなたが真っ先に会いたい人は誰ですか？",
-  },
-  {
-    id: 2, daysLeft: 72, label: "3週間後",
-    title: "日常が溶けていく",
-    situation: "会社に「しばらく休む」と伝えた翌朝。\n\n久しぶりに昼まで眠った。\n窓から差し込む光が、なぜか眩しかった。\n\nこんな時間があったんだ、と思った。",
-    event: "💼 上司からメール：\n「無理せず。いつでも戻ってこい。」",
-    choices: [
-      { id: "A", text: "「ありがとうございます」と返信する", impact: "gratitude",
-        result: "キーボードを打ちながら思った。\nこんな言葉を、真剣に書いたことがあっただろうか。\n\n送信ボタンを押すと、少し胸が軽くなった。" },
-      { id: "B", text: "返信しない。今は自分のことだけ", impact: "solo",
-        result: "メールを閉じた。\n\n窓の外の雲が、ゆっくりと流れていった。\nこれでいい、と思った。\n\nこれでいいんだ、と思った。" },
-      { id: "C", text: "電話して、本当のことを話す", impact: "honest",
-        result: "「実は…」と話し始めると、\n上司は最後まで黙って聞いてくれた。\n\n「そうか」という一言が、なぜか泣けた。\n強い人だと思っていたのに。" },
-    ],
-    reflection: "仕事や役割を全部外したとき、あなたは何者ですか？",
-  },
-  {
-    id: 3, daysLeft: 45, label: "折り返し",
-    title: "半分が過ぎた",
-    situation: "残り45日。\n\n体の変化を感じ始めた。\n階段を上がると、少し息が切れる。\n\n子どもの頃よく行った公園の前を、\n今日たまたま通った。",
-    event: "🌳 公園のベンチ。\n平日の昼。誰もいない。",
-    choices: [
-      { id: "A", text: "ベンチに座って、昔を思い出す", impact: "memory",
-        result: "砂場で転んで泣いた日。\n自転車に初めて乗れた日。\n親に怒られた夏の夕方。\n\nあの頃の自分が、すぐそこにいる気がした。" },
-      { id: "B", text: "子どもや家族に電話する", impact: "family",
-        result: "「ねえ、今どこにいると思う？」\n\n電話の向こうで笑ってくれた。\nその声が、今日一番の薬だった。" },
-      { id: "C", text: "やりたいことをメモし始める", impact: "action",
-        result: "スマホのメモ帳に書き始めた。\n\n書いていくうちに気づいた。\n「意外と、まだできることがある」\n\nその発見が、少し怖くて、少し嬉しかった。" },
-    ],
-    reflection: "10歳の自分に、今一つだけ言葉をかけるとしたら？",
-  },
-  {
-    id: 4, daysLeft: 28, label: "残り1ヶ月",
-    title: "言えなかった言葉",
-    situation: "残り28日。\n\n久しぶりに兄（姉）と会った。\n昔はよく喧嘩した。\n\n最後に素直に話したのは、\nいつだっただろう。",
-    event: "👤 二人で、静かな喫茶店にいる。",
-    choices: [
-      { id: "A", text: "「ありがとう」と伝える", impact: "gratitude",
-        result: "「何それ、急に」と笑われた。\n\nでもその目が、少し赤かった。\n二人して、しばらく黙っていた。\n\nそれで十分だった。" },
-      { id: "B", text: "「ごめん」と伝える", impact: "forgive",
-        result: "「何の話？」と言いながら、\n隣に座ってきた。\n\n肩が触れた。\nそれだけで、もう十分だった。" },
-      { id: "C", text: "いつも通りに話す", impact: "peace",
-        result: "他愛のない話をした。\n昔の話、天気の話、くだらない話。\n\nそれが今日、一番あたたかかった。\n普通って、こんなに貴重だったのか。" },
-    ],
-    reflection: "今すぐ「ごめん」か「ありがとう」を伝えたい人はいますか？",
-  },
-  {
-    id: 5, daysLeft: 14, label: "残り2週間",
-    title: "準備",
-    situation: "残り14日。\n\n医師から「準備を」と言われた。\n部屋の片付けをしていたら、\n古いアルバムが出てきた。\n\n色褪せた写真。\nあの頃の自分が、笑っている。",
-    event: "📷 色褪せた、写真の束。",
-    choices: [
-      { id: "A", text: "家族と一緒に見る", impact: "family",
-        result: "「これ、いつ？」\n「覚えてない」\n\n笑いながら、泣いた。\n泣きながら、笑った。\n\nこういう時間が、もっとあればよかった。" },
-      { id: "B", text: "一人でゆっくり見る", impact: "memory",
-        result: "一枚一枚をめくるたびに、\n記憶の匂いがした。\n\n自分は、十分生きていた。\nそう思えた。" },
-      { id: "C", text: "大切な人に写真を送る", impact: "gratitude",
-        result: "「昔の写真見つけた」と送ったら、\n「懐かしい！！」とすぐ返ってきた。\n\nその三文字が、今日一番の宝物だった。" },
-    ],
-    reflection: "あなたの人生で、一番大切な「瞬間」はいつですか？",
-  },
-  {
-    id: 6, daysLeft: 7, label: "最後の朝",
-    title: "残り7日",
-    situation: "朝、目が覚めた。\n\n窓から光が入ってくる。\n大切な人が、隣で眠っている。\n\n鳥が鳴いている。\nこんなに朝が静かだったことに、\n気づいていなかった。",
-    event: "🌅 最後の、朝。",
-    choices: [
-      { id: "A", text: "そっと手を握る", impact: "love",
-        result: "温かかった。\n\nそれだけで、もう十分だと思った。\nこの人に会えてよかった。\n\nこの人に、会えてよかった。" },
-      { id: "B", text: "「ありがとう」と小さく言う", impact: "gratitude",
-        result: "眠そうな目でこちらを見た。\n「なに？」\n「なんでもない」\n\nそれでよかった。\nそれが、全てだった。" },
-      { id: "C", text: "一人で朝の空気を吸いに行く", impact: "peace",
-        result: "外に出ると、空気が澄んでいた。\n鳥が鳴いていた。\n\nこんなに朝が美しかったことに、\n気づいていなかった。\n\n気づけて、よかった。" },
-    ],
-    reflection: "今日、一番そばにいたい人は誰ですか？その人に何を伝えますか？",
-  },
+const denialApps = [
+  { name: "SNS", icon: "♡", text: "誰かの昼ごはん。誰かの旅行。世界はいつも通り流れている。" },
+  { name: "仕事", icon: "💼", text: "返信を書こうとして、敬語だけが妙に遠く感じた。" },
+  { name: "カレンダー", icon: "📅", text: "来月の予定が並んでいる。そこに自分がいる確信だけがない。" },
+  { name: "写真", icon: "🖼️", text: "最後に家族と撮った写真が、思い出せない。" },
+  { name: "メモ", icon: "📝", text: "やることリストには、まだ生活が残っている。" },
+  { name: "電話", icon: "📞", text: "母の名前がある。押せばつながる。ただ、それだけが重い。" },
 ];
 
-const ENDINGS = {
-  family:   { title: "家族のエンディング",   text: "あなたは最後まで、大切な人のそばにいることを選んだ。\n\n「ありがとう」は、思ったより長く生きる。\nあなたの言葉は、きっとまだ、誰かの中で生きている。" },
-  gratitude:{ title: "感謝のエンディング",   text: "あなたは最後まで、感謝を伝えることを選んだ。\n\n受け取った人は、きっとあなたのことを忘れない。\nその言葉は、あなたがいなくなっても、生き続ける。" },
-  peace:    { title: "静寂のエンディング",   text: "あなたは最後まで、自分の内側と向き合った。\n\n誰かに伝えなくても、心の中で完結することがある。\nそれもまた、美しい生き方だった。" },
-  memory:   { title: "記憶のエンディング",   text: "あなたは最後まで、記憶と向き合った。\n\n過去は変えられない。でも、どう受け取るかは変えられる。\nあなたの記憶は、あなたを作った全てだ。" },
-  default:  { title: "あなたのエンディング", text: "あなたは自分なりの90日を生きた。\n\n後悔も、感謝も、愛も、すべてが、あなたの人生の一部だった。" },
-};
+const memories = [
+  { title: "夏の帰り道", text: "ぬるい風。遠くの踏切。溶けかけたアイス。あの日は、ただ帰るだけでよかった。" },
+  { title: "家族との食卓", text: "味噌汁の湯気。テレビの音。誰も大切だなんて言わなかった。でも、全部そこにあった。" },
+  { title: "夜のコンビニ", text: "元恋人と買った安いコーヒー。くだらない話。もう戻れないのに、光だけは覚えている。" },
+  { title: "子ども時代の公園", text: "夕方の匂い。砂のついた手。呼ばれた自分の名前。あの頃は、明日が無限だった。" },
+];
 
-function getEnding(impacts) {
-  const c = {};
-  impacts.forEach(k => { c[k] = (c[k] || 0) + 1; });
-  const top = Object.entries(c).sort((a, b) => b[1] - a[1])[0];
-  return ENDINGS[top?.[0]] || ENDINGS.default;
+const questions = [
+  "本当は誰に会いたいですか？",
+  "誰に謝りたいですか？",
+  "誰に感謝していますか？",
+  "人生で一番幸せだった瞬間は？",
+  "もし明日終わるなら何をしますか？",
+];
+
+function nowText() {
+  return new Intl.DateTimeFormat("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
 }
 
-function useTypewriter(text, speed = 30, active = true) {
-  const [idx, setIdx] = useState(0);
-  const [done, setDone] = useState(false);
-  useEffect(() => {
-    setIdx(0); setDone(false);
-    if (!text) return;
-    if (!active) { setIdx(text.length); setDone(true); return; }
-    let i = 0;
-    const t = setInterval(() => {
-      i++; setIdx(i);
-      if (i >= text.length) { clearInterval(t); setDone(true); }
-    }, speed);
-    return () => clearInterval(t);
-  }, [text, active, speed]);
-  return { displayed: text?.slice(0, idx) || "", done };
+function Button({ children, onClick, primary=false }) {
+  return <button className={`btn ${primary ? "primary" : ""}`} onClick={onClick}>{children}</button>;
 }
 
-function useCountdown(from, active) {
-  const [val, setVal] = useState(from);
-  useEffect(() => {
-    if (!active) return;
-    const t = setInterval(() => setVal(v => v > 0 ? v - 1 : 0), 80);
-    return () => clearInterval(t);
-  }, [active]);
-  return val;
-}
-
-function Cursor({ color = "#c76472" }) {
-  const [v, setV] = useState(true);
-  useEffect(() => { const t = setInterval(() => setV(x => !x), 500); return () => clearInterval(t); }, []);
-  return <span style={{color, opacity: v ? 1 : 0, userSelect: "none"}}>▌</span>;
-}
-
-function Btn({ children, onClick, disabled, full = false, dim = false }) {
-  const [h, setH] = useState(false);
+function TimeBar({ days }) {
   return (
-    <button onClick={onClick} disabled={disabled}
-      onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{
-        background: disabled ? "transparent" : h ? "#d99099" : "rgba(255,248,244,0.035)",
-        border: `1px solid ${disabled ? "#56464a" : h ? "#d99099" : "#8f6269"}`,
-        borderRadius: 16,
-        color: disabled ? "#7e6b6e" : h ? "#fff8f4" : "#f2c2c8",
-        padding: "14px 18px", fontFamily: "'Georgia',serif", fontSize: 14,
-        cursor: disabled ? "default" : "pointer", width: full ? "100%" : "auto",
-        textAlign: "left", transition: "all 0.15s", letterSpacing: 0,
-        opacity: dim ? 0.5 : 1,
-        boxShadow: h && !disabled ? "0 10px 24px rgba(199,100,114,0.18)" : "none",
-      }}>
-      {children}
-    </button>
+    <div className="timebar">
+      <span>{nowText()}</span>
+      <span className="pill">残り {days} 日</span>
+    </div>
   );
 }
 
-function DoctorLine({ text, isLast }) {
-  const { displayed, done } = useTypewriter(text, 55, true);
+function Intro({ onNext }) {
   return (
-    <p style={{
-      fontSize: text === "……" ? 18 : 16,
-      color: text === "残された時間は、長くありません。" ? "#d99099"
-           : text === "やり残したことは、ありませんか？" ? "#fff8f4"
-           : "#b6a5a8",
-      fontFamily: "Georgia,serif", lineHeight: 1.9, letterSpacing: 0,
-      textShadow: text === "残された時間は、長くありません。" ? "0 10px 28px rgba(199,100,114,0.2)" : "none",
-    }}>
-      {displayed}{isLast && !done && <Cursor />}
-    </p>
+    <div className="page center">
+      <p className="eyebrow">CONCEPT</p>
+      <h1 className="title">最後の既読</h1>
+      <p className="body" style={{ marginTop: 18 }}>
+        この物語は、死を体験させるアプリではない。{"\n\n"}
+        失ってから気づくはずだった感情を、まだ間に合う今、先に体験するためのアプリである。
+      </p>
+      <div style={{ marginTop: 34 }}>
+        <Button primary onClick={onNext}>はじめる</Button>
+      </div>
+    </div>
   );
 }
 
-function Opening({ onComplete }) {
-  const [phase, setPhase] = useState(0);
-  const [lineIdx, setLineIdx] = useState(0);
-  const [notifIdx, setNotifIdx] = useState(-1);
-  const [showChoice, setShowChoice] = useState(false);
-  const [brightness, setBrightness] = useState(0);
-  const [blur, setBlur] = useState(8);
-
-  const DOCTOR_LINES = [
-    { text: "検査結果ですが……", delay: 0 },
-    { text: "正直にお伝えします。", delay: 2200 },
-    { text: "……", delay: 4200 },
-    { text: "残された時間は、長くありません。", delay: 5600 },
-    { text: "やり残したことは、ありませんか？", delay: 9000 },
-  ];
-
+function Hospital({ onNext }) {
+  const [visible, setVisible] = useState(0);
   useEffect(() => {
-    setTimeout(() => {
-      setPhase(1);
-      let b = 0;
-      const bi = setInterval(() => {
-        b += 2; setBrightness(b);
-        if (b >= 100) clearInterval(bi);
-      }, 30);
-      let bl = 8;
-      const bli = setInterval(() => {
-        bl -= 0.15; setBlur(Math.max(0, bl));
-        if (bl <= 0) clearInterval(bli);
-      }, 30);
-    }, 1200);
-
-    DOCTOR_LINES.forEach((line, i) => {
-      setTimeout(() => setLineIdx(i + 1), 2800 + line.delay);
-    });
-
-    setTimeout(() => {
-      NOTIFICATIONS.forEach((_, i) => {
-        setTimeout(() => setNotifIdx(i), i * 1200);
-      });
-    }, 12000);
-
-    setTimeout(() => setShowChoice(true), 18500);
+    const timers = notifications.map((_, i) => setTimeout(() => setVisible(i + 1), 900 + i * 750));
+    const next = setTimeout(onNext, 5700);
+    return () => { timers.forEach(clearTimeout); clearTimeout(next); };
   }, []);
 
-  const visibleLines = DOCTOR_LINES.slice(0, lineIdx);
-
   return (
-    <div style={{
-      position: "absolute", inset: 0,
-      background: "linear-gradient(180deg, #201719 0%, #171214 58%, #191314 100%)",
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      padding: "56px 28px 42px", zIndex: 100,
-      overflowY: "auto",
-    }}>
-      {phase === 0 && (
-        <p style={{ color: "#7a6669", fontSize: 11, fontFamily: "Georgia,serif", letterSpacing: 4, opacity: brightness > 0 ? 0 : 0.6 }}>
-          — 病院 —
-        </p>
-      )}
-
-      {phase >= 1 && !showChoice && (
-        <div style={{
-          width: "100%", maxWidth: 420,
-          filter: `blur(${blur}px)`,
-          opacity: brightness / 100,
-          transition: "none",
-        }}>
-          {lineIdx === 0 && (
-            <p style={{ color: "#7e6b6e", fontSize: 12, fontFamily: "Georgia,serif", lineHeight: 2, textAlign: "center", letterSpacing: 2 }}>
-              白い天井。<br/>空調の音。<br/>遠くでナースコールが鳴っている。
-            </p>
-          )}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {visibleLines.map((line, i) => (
-              <DoctorLine key={i} text={line.text} isLast={i === visibleLines.length - 1} />
-            ))}
-          </div>
-
-          {notifIdx >= 0 && (
-            <div style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 8 }}>
-              <p style={{ fontSize: 10, color: "#7e6b6e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 4 }}>
-                — あなたのスマートフォンに —
-              </p>
-              {NOTIFICATIONS.slice(0, notifIdx + 1).map((n, i) => (
-                <div key={i} style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid #3a2b2f",
-                  padding: "10px 14px",
-                  display: "flex", gap: 10, alignItems: "center",
-                  animation: "slideIn 0.4s ease",
-                  opacity: i < notifIdx ? 0.3 : 1,
-                }}>
-                  <span style={{fontSize: 16}}>{n.icon}</span>
-                  <div>
-                    <p style={{fontSize: 10, color: "#9b898c", fontFamily: "Georgia,serif", marginBottom: 2}}>{n.app}</p>
-                    <p style={{fontSize: 12, color: "#b6a5a8", fontFamily: "Georgia,serif"}}>{n.msg}</p>
-                  </div>
-                </div>
-              ))}
-              {notifIdx >= NOTIFICATIONS.length - 1 && (
-                <p style={{fontSize: 12, color: "#7d4650", fontFamily: "Georgia,serif", lineHeight: 2, marginTop: 8, letterSpacing: 1, textAlign: "center", animation: "fadeIn 1s ease"}}>
-                  これらが、<br/>急にどうでもよく見えた。
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {showChoice && (
-        <div style={{ width: "100%", maxWidth: 420, animation: "fadeIn 1.2s ease", marginTop: 40 }}>
-          <div style={{ textAlign: "center", marginBottom: 36 }}>
-            <p style={{ fontSize: 28, color: "#f0b5bc", fontFamily: "Georgia,serif", letterSpacing: 4, marginBottom: 6,
-              textShadow: "0 12px 34px rgba(199,100,114,0.28)" }}>
-              LAST SAVE
-            </p>
-            <p style={{ fontSize: 11, color: "#9b898c", fontFamily: "Georgia,serif", letterSpacing: 3, lineHeight: 1.8 }}>
-              メメントモリアプリ<br/>最後に後悔する人は、多いです。<br/>でも、ちゃんと生き直した人もいます。
-            </p>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Btn onClick={() => onComplete("self")} full>
-              自分の人生を振り返る
-            </Btn>
-            <Btn onClick={() => onComplete("family")} full>
-              家族との時間を残す
-            </Btn>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SelfIntro({ onStart }) {
-  const count = useCountdown(89, true);
-  const [showStart, setShowStart] = useState(false);
-  useEffect(() => { setTimeout(() => setShowStart(true), 4000); }, []);
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100%", padding: "56px 28px 40px", background: "linear-gradient(180deg, #201719 0%, #171214 72%)" }}>
-      <p style={{ fontSize: 11, color: "#7d4650", fontFamily: "Georgia,serif", letterSpacing: 4, marginBottom: 40 }}>
-        あなたの余命は、90日です。
+    <div className="page center">
+      <p className="eyebrow">HOSPITAL</p>
+      <p className="body">
+        白い天井。{"\n"}
+        消毒液の匂い。{"\n"}
+        遠くで鳴る心電図。
       </p>
-      <div style={{ textAlign: "center", marginBottom: 48 }}>
-        <p style={{ fontSize: 11, color: "#9b898c", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 12 }}>残り</p>
-        <p style={{ fontSize: "clamp(64px,16vw,96px)", color: "#f0b5bc", fontFamily: "Georgia,serif", fontWeight: 700,
-          textShadow: "0 16px 44px rgba(199,100,114,0.26)", letterSpacing: 2, lineHeight: 1 }}>
-          {count}
-        </p>
-        <p style={{ fontSize: 14, color: "#9b898c", fontFamily: "Georgia,serif", letterSpacing: 3, marginTop: 8 }}>日</p>
+      <div className="stack" style={{ marginTop: 28 }}>
+        {notifications.slice(0, visible).map((n, i) => (
+          <div className="notification" key={i}>
+            <div className="icon">{n.icon}</div>
+            <div>
+              <p className="message-name">{n.app}</p>
+              <p className="message-text">{n.text}</p>
+            </div>
+          </div>
+        ))}
       </div>
-      {showStart && (
-        <div style={{animation: "fadeIn 0.8s ease", textAlign: "center"}}>
-          <p style={{fontSize: 12, color: "#9b898c", fontFamily: "Georgia,serif", lineHeight: 2.2, marginBottom: 32}}>
-            この体験は、約10分です。<br/>
-            あなたの言葉が、物語を作ります。
-          </p>
-          <Btn onClick={onStart} full>— 体験を始める —</Btn>
-        </div>
-      )}
     </div>
   );
 }
 
-function ChapterScreen({ chapter, pov, onChoice, choiceResult, onNext, onReflect }) {
-  const isFamily = pov === "family";
-  const situation = isFamily
-    ? chapter.situation.replace("大切な人が", "あなたの母が").replace("あなたはまだ", "あなたは")
-    : chapter.situation;
+function Diagnosis({ onNext }) {
+  return (
+    <div className="page center">
+      <p className="eyebrow">DOCTOR</p>
+      <p className="body">
+        検査結果ですが……{"\n\n"}
+        残された時間は、長くありません。{"\n\n"}
+        おそらく、3ヶ月です。
+      </p>
+      <div style={{ marginTop: 34 }}>
+        <Button onClick={onNext}>通知を見る</Button>
+      </div>
+    </div>
+  );
+}
 
-  const { displayed: sitText, done: sitDone } = useTypewriter(situation, 24);
-  const { displayed: resultText, done: resultDone } = useTypewriter(choiceResult || "", 20);
-  const [phase, setPhase] = useState("situation");
-  const [reflectText, setReflectText] = useState("");
-  const [reflectSaved, setReflectSaved] = useState(false);
+function Denial({ onNext, onOpenApp }) {
+  return (
+    <div className="page">
+      <TimeBar days={89} />
+      <p className="eyebrow">PHASE 1 / 否認</p>
+      <h2 className="title" style={{ fontSize: 22 }}>いや、まだ大丈夫</h2>
+      <p className="body" style={{ marginTop: 14 }}>
+        誤診かもしれない。{"\n"}
+        明日になれば、いつもの生活に戻れるかもしれない。{"\n\n"}
+        だからあなたは、いつも通りスマホを触る。
+      </p>
+      <div className="app-grid">
+        {denialApps.map((app) => (
+          <button className="app-icon" key={app.name} onClick={() => onOpenApp(app)}>
+            <span>{app.icon}</span>
+            <small>{app.name}</small>
+          </button>
+        ))}
+      </div>
+      <Button primary onClick={onNext}>夜になる</Button>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    setPhase("situation");
-    setReflectText("");
-    setReflectSaved(false);
-  }, [chapter.id]);
+function AppModal({ app, onClose }) {
+  if (!app) return null;
+  return (
+    <div className="page center" style={{ position: "absolute", inset: 0, zIndex: 30, background: "rgba(20,16,17,0.96)" }}>
+      <div className="card">
+        <p className="eyebrow">{app.name}</p>
+        <p className="body">{app.text}</p>
+      </div>
+      <div style={{ marginTop: 18 }}>
+        <Button onClick={onClose}>閉じる</Button>
+      </div>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (sitDone && phase === "situation") setTimeout(() => setPhase("event"), 600);
-  }, [sitDone, phase]);
+function Loneliness({ onNext }) {
+  return (
+    <div className="page center">
+      <TimeBar days={72} />
+      <p className="eyebrow">PHASE 2 / 孤独</p>
+      <p className="body">
+        病室。夜。{"\n"}
+        通知が減る。{"\n\n"}
+        最初はみんな心配する。{"\n"}
+        でも徐々に、世界は普通に進み始める。{"\n\n"}
+        自分だけが止まっている。
+      </p>
+      <div className="card" style={{ marginTop: 28 }}>
+        <p className="message-name">母</p>
+        <p className="message-text">不在着信。再生されませんでした。</p>
+      </div>
+      <div style={{ marginTop: 20 }}>
+        <Button primary onClick={onNext}>記憶が戻る</Button>
+      </div>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (phase === "event") setTimeout(() => setPhase("choices"), 1000);
-  }, [phase]);
+function Memories({ onNext }) {
+  return (
+    <div className="page">
+      <TimeBar days={45} />
+      <p className="eyebrow">PHASE 3 / 記憶回帰</p>
+      <p className="body">
+        成果ではなく、情景ばかりを思い出す。{"\n"}
+        胸が苦しくなるほど、どうでもよかった日常。
+      </p>
+      <div className="stack" style={{ marginTop: 20 }}>
+        {memories.map((m) => (
+          <div className="memory" key={m.title}>
+            <p className="message-name">{m.title}</p>
+            <p className="message-text">{m.text}</p>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 20 }}>
+        <Button primary onClick={onNext}>未送信の下書きを開く</Button>
+      </div>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (resultDone && choiceResult) setTimeout(() => setPhase("reflection"), 600);
-  }, [resultDone, choiceResult]);
+function Unsent({ draft, setDraft, onNext }) {
+  return (
+    <div className="page">
+      <TimeBar days={28} />
+      <p className="eyebrow">最も重要な章 / 未送信</p>
+      <h2 className="title" style={{ fontSize: 22 }}>言えなかった言葉</h2>
+      <p className="body" style={{ marginTop: 14 }}>
+        ごめん。ありがとう。本当は嫌だった。愛してる。会いたい。{"\n\n"}
+        ここに書くことはできる。{"\n"}
+        でも、この画面から送信することはできない。
+      </p>
+      <textarea
+        className="draft"
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        placeholder="言えなかった言葉を書く"
+        style={{ marginTop: 20 }}
+      />
+      <p className="message-text" style={{ margin: "10px 0 18px" }}>未送信として保存されます。</p>
+      <Button primary onClick={onNext}>保存せずに閉じる</Button>
+    </div>
+  );
+}
 
-  const handleChoice = (ch) => {
-    setPhase("result");
-    onChoice(ch);
+function Quiet({ onNext }) {
+  return (
+    <div className="page center">
+      <TimeBar days={7} />
+      <p className="eyebrow">残り7日</p>
+      <p className="body">
+        世界が異常に静かになる。{"\n\n"}
+        BGMも減る。{"\n"}
+        通知も来ない。{"\n"}
+        空気音だけ。{"\n\n"}
+        人生って、{"\n"}
+        誰かとのノイズだったんだ。
+      </p>
+      <div style={{ marginTop: 34 }}>
+        <Button onClick={onNext}>目を閉じる</Button>
+      </div>
+    </div>
+  );
+}
+
+function ReturnToNow({ onNext }) {
+  return (
+    <div className="page center" style={{ background: "#080607" }}>
+      <p className="body blink" style={{ textAlign: "center", color: "#5f5557", marginBottom: 34 }}>無音</p>
+      <p className="eyebrow" style={{ textAlign: "center" }}>{nowText()}</p>
+      <h2 className="title" style={{ textAlign: "center", fontSize: 24 }}>あなたは、まだ間に合います</h2>
+      <div style={{ marginTop: 34 }}>
+        <Button primary onClick={onNext}>今の自分に戻る</Button>
+      </div>
+    </div>
+  );
+}
+
+function Questions({ answers, setAnswers, onNext }) {
+  const update = (i, value) => {
+    setAnswers(current => current.map((a, idx) => idx === i ? value : a));
   };
+  return (
+    <div className="page">
+      <p className="eyebrow">最後の体験</p>
+      <h2 className="title" style={{ fontSize: 22 }}>まだ間に合うこと</h2>
+      <p className="body" style={{ marginTop: 14, marginBottom: 22 }}>
+        最後に、今のあなたの言葉を残してください。
+      </p>
+      {questions.map((q, i) => (
+        <div className="question" key={q}>
+          <label>{q}</label>
+          <input value={answers[i]} onChange={e => update(i, e.target.value)} placeholder="短い言葉で大丈夫です" />
+        </div>
+      ))}
+      <Button primary onClick={onNext}>言葉をまとめる</Button>
+    </div>
+  );
+}
+
+function Testament({ answers, draft, onRestart }) {
+  const text = useMemo(() => {
+    const [meet, sorry, thanks, happy, tomorrow] = answers.map(a => a.trim()).map(a => a || "まだ言葉にならない誰か");
+    const draftLine = draft.trim() ? `\n\n未送信のまま残っていた言葉。\n「${draft.trim()}」` : "";
+    return `自分は、成功したかったんじゃない。\n\nただ、ちゃんと誰かと生きたかった。\n\n本当は、${meet}に会いたかった。\n${sorry}に謝りたかった。\n${thanks}にありがとうを伝えたかった。\n\n一番幸せだったのは、${happy}。\n\nもし明日終わるなら、${tomorrow}。\n\nだから今日、後回しにしない。${draftLine}`;
+  }, [answers, draft]);
 
   return (
-    <div style={{ width: "100%", maxWidth: 520, margin: "0 auto", padding: "0 0 60px" }}>
-      <div style={{ padding: "20px 0 16px", borderBottom: "1px solid #3a2b2f", marginBottom: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <p style={{ fontSize: 10, color: "#c76472", fontFamily: "Georgia,serif", letterSpacing: 4 }}>{chapter.label}</p>
-          <p style={{ fontSize: 11, color: "#7e6b6e", fontFamily: "Georgia,serif" }}>残り {chapter.daysLeft} 日</p>
-        </div>
-        <p style={{ fontSize: 17, color: "#fff8f4", fontFamily: "Georgia,serif", marginTop: 4 }}>{chapter.title}</p>
+    <div className="page">
+      <p className="eyebrow">あなたの言葉</p>
+      <div className="testament">{text}</div>
+      <div className="card" style={{ marginTop: 28 }}>
+        <p className="message-name">最終メッセージ</p>
+        <p className="message-text">
+          この物語は、死についての作品ではない。今日を後回しにしないための作品である。
+        </p>
       </div>
-
-      <p style={{ fontSize: 15, color: "#c8bfc2", fontFamily: "Georgia,serif", lineHeight: 2.1, whiteSpace: "pre-line", marginBottom: 28, minHeight: 80 }}>
-        {sitText}{!sitDone && <Cursor color="#7e6b6e"/>}
-      </p>
-
-      {(phase !== "situation") && (
-        <div style={{ padding: "12px 16px", borderLeft: "2px solid #7d4650", marginBottom: 28, background: "rgba(199,100,114,0.04)", animation: "fadeIn 0.5s ease" }}>
-          <p style={{ fontSize: 13, color: "#b6a5a8", fontFamily: "Georgia,serif", lineHeight: 1.9, whiteSpace: "pre-line" }}>
-            {chapter.event}
-          </p>
-        </div>
-      )}
-
-      {phase === "choices" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, animation: "fadeIn 0.4s ease" }}>
-          <p style={{ fontSize: 10, color: "#7e6b6e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 8 }}>
-            — どうしますか —
-          </p>
-          {chapter.choices.map(ch => (
-            <Btn key={ch.id} onClick={() => handleChoice(ch)} full>
-              {ch.id}　　{ch.text}
-            </Btn>
-          ))}
-        </div>
-      )}
-
-      {(phase === "result" || phase === "reflection" || phase === "done") && choiceResult && (
-        <div style={{ animation: "fadeIn 0.5s ease", marginBottom: 24 }}>
-          <p style={{ fontSize: 14, color: "#fff8f4", fontFamily: "Georgia,serif", lineHeight: 2.2, whiteSpace: "pre-line" }}>
-            {resultText}{!resultDone && <Cursor/>}
-          </p>
-        </div>
-      )}
-
-      {phase === "reflection" && !reflectSaved && (
-        <div style={{ animation: "fadeIn 0.6s ease" }}>
-          <div style={{ padding: 20, border: "1px solid #3a2b2f", borderRadius: 18, background: "rgba(255,248,244,0.035)", marginBottom: 14 }}>
-            <p style={{ fontSize: 10, color: "#c76472", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 12 }}>
-              — 語り手より —
-            </p>
-            <p style={{ fontSize: 14, color: "#c8bfc2", fontFamily: "Georgia,serif", lineHeight: 2, marginBottom: 16 }}>
-              {chapter.reflection}
-            </p>
-            <textarea value={reflectText} onChange={e => setReflectText(e.target.value)}
-              placeholder="あなたの言葉（スキップも可）"
-              style={{ width: "100%", background: "rgba(23,18,20,0.92)", border: "1px solid #3a2b2f", borderRadius: 12, color: "#fff8f4",
-                padding: "10px 12px", fontFamily: "Georgia,serif", fontSize: 13, outline: "none",
-                resize: "none", lineHeight: 1.8 }} rows={2} />
-          </div>
-          <Btn onClick={() => { onReflect(reflectText); setReflectSaved(true); setPhase("done"); }} full>
-            {reflectText ? "記録して次へ" : "スキップして次へ"}
-          </Btn>
-        </div>
-      )}
-
-      {phase === "done" && (
-        <div style={{ animation: "fadeIn 0.5s ease" }}>
-          {reflectText && (
-            <p style={{ fontSize: 13, color: "#9b898c", fontFamily: "Georgia,serif", fontStyle: "italic",
-              borderLeft: "1px solid #3a2b2f", paddingLeft: 14, marginBottom: 16, lineHeight: 1.9 }}>
-              「{reflectText}」
-            </p>
-          )}
-          <Btn onClick={onNext} full>
-            {chapter.id === 6 ? "エピローグへ" : "次の章へ"}
-          </Btn>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FuneralScreen({ pov, onContinue }) {
-  const text = pov === "self"
-    ? "葬儀の準備をしているのは、\nあなたが一番愛した人たちだった。\n\n花を選ぶ手が震えている。\n写真を一枚選ぶのに、一時間かかった。\n\n部屋の隅に、誰かが置いたコーヒーが冷めていた。\n\n「あの時もっと、一緒にいればよかった」\n\nその言葉が、部屋の中に静かに漂っていた。"
-    : "葬儀の準備をしながら、\nあなたはあの人の声を思い出していた。\n\n最後に交わした言葉が、\n何だったか思い出せない。\n昨日のことなのに、もう遠い。\n\n「あの時もっと、ちゃんと話しておけばよかった」\n\nその後悔だけが、鮮明に残っていた。";
-
-  const {displayed, done} = useTypewriter(text, 22);
-  return (
-    <div style={{ width: "100%", maxWidth: 500, margin: "0 auto", padding: "40px 0 60px" }}>
-      <p style={{ fontSize: 10, color: "#7d4650", fontFamily: "Georgia,serif", letterSpacing: 5, marginBottom: 32, textAlign: "center" }}>
-        EPILOGUE
-      </p>
-      <p style={{ fontSize: 15, color: "#9b898c", fontFamily: "Georgia,serif", lineHeight: 2.4, whiteSpace: "pre-line", minHeight: 200 }}>
-        {displayed}{!done && <Cursor color="#7e6b6e"/>}
-      </p>
-      {done && (
-        <div style={{ marginTop: 40, animation: "fadeIn 0.8s ease" }}>
-          <Btn onClick={onContinue} full>— 今の自分に戻る —</Btn>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function EndingScreen({ impacts, reflections, onRestart }) {
-  const ending = getEnding(impacts);
-  const {displayed, done} = useTypewriter(ending.text, 22);
-  const [showActions, setShowActions] = useState(false);
-  const [checked, setChecked] = useState({});
-  useEffect(() => { if (done) setTimeout(() => setShowActions(true), 1000); }, [done]);
-
-  const actions = [
-    {t: "今夜、家族と一緒に食事をする", d: "「また今度」は来ないかもしれない。今夜、同じテーブルを囲む。"},
-    {t: "ありがとうを、直接言葉で伝える", d: "LINEではなく、電話か対面で。「いつもありがとう」の一言から。"},
-    {t: "大切な人に電話をかける", d: "元気かどうか、今どんな毎日か。今日、聞く。"},
-    {t: "一緒に写真を撮る", d: "最後に家族と写真を撮ったのはいつ？今週末、集まって撮る。"},
-    {t: "JANEに「言葉」を残す", d: "もしもの時のために、大切な人へのメッセージを今日書いておく。"},
-  ];
-
-  return (
-    <div style={{ width: "100%", maxWidth: 500, margin: "0 auto", padding: "40px 0 80px" }}>
-      <p style={{ fontSize: 10, color: "#7d4650", fontFamily: "Georgia,serif", letterSpacing: 5, marginBottom: 28, textAlign: "center" }}>
-        ENDING
-      </p>
-      <p style={{ fontSize: 13, color: "#c76472", fontFamily: "Georgia,serif", letterSpacing: 2, marginBottom: 20 }}>
-        {ending.title}
-      </p>
-      <p style={{ fontSize: 15, color: "#c8bfc2", fontFamily: "Georgia,serif", lineHeight: 2.3, whiteSpace: "pre-line", marginBottom: 32 }}>
-        {displayed}{!done && <Cursor/>}
-      </p>
-
-      {done && reflections.filter(r => r.text).length > 0 && (
-        <div style={{ borderTop: "1px solid #3a2b2f", paddingTop: 24, marginBottom: 32, animation: "fadeIn 0.8s ease" }}>
-          <p style={{ fontSize: 10, color: "#7e6b6e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 18 }}>
-            — あなたが残した言葉 —
-          </p>
-          {reflections.filter(r => r.text).map((r, i) => (
-            <div key={i} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #21191b" }}>
-              <p style={{ fontSize: 10, color: "#7d4650", fontFamily: "Georgia,serif", marginBottom: 4 }}>{r.chapter}</p>
-              <p style={{ fontSize: 13, color: "#fff8f4", fontFamily: "Georgia,serif", fontStyle: "italic", lineHeight: 1.9 }}>「{r.text}」</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {showActions && (
-        <div style={{ animation: "fadeIn 0.8s ease" }}>
-          <p style={{ fontSize: 10, color: "#7e6b6e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 16 }}>
-            — 今日から、始められること —
-          </p>
-          <div style={{ marginBottom: 32, display: "flex", flexDirection: "column", gap: 0 }}>
-            {actions.map((a, i) => (
-              <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start",
-                padding: "14px 0", borderBottom: "1px solid #21191b" }}>
-                <button onClick={() => setChecked(c => ({...c, [i]: !c[i]}))} style={{
-                  width: 16, height: 16, border: `1px solid ${checked[i] ? "#c76472" : "#56464a"}`,
-                  background: checked[i] ? "#c76472" : "transparent", cursor: "pointer",
-                  flexShrink: 0, marginTop: 3, color: "#fff8f4", fontSize: 10, fontFamily: "Georgia,serif" }}>
-                  {checked[i] ? "✓" : ""}
-                </button>
-                <div>
-                  <p style={{ fontSize: 13, color: checked[i] ? "#7e6b6e" : "#fff8f4", fontFamily: "Georgia,serif",
-                    marginBottom: 3, textDecoration: checked[i] ? "line-through" : "none" }}>{a.t}</p>
-                  <p style={{ fontSize: 11, color: "#9b898c", fontFamily: "Georgia,serif", lineHeight: 1.8 }}>{a.d}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ padding: "28px 24px", border: "1px solid #8f6269", borderRadius: 22, background: "rgba(255,248,244,0.04)",
-            textAlign: "center", marginBottom: 24,
-            boxShadow: "0 16px 36px rgba(61,38,41,0.18)" }}>
-            <p style={{ fontSize: 10, color: "#c76472", fontFamily: "Georgia,serif", letterSpacing: 4, marginBottom: 12 }}>
-              NEXT STEP
-            </p>
-            <p style={{ fontSize: 16, color: "#fff8f4", fontFamily: "Georgia,serif", marginBottom: 10, lineHeight: 1.7 }}>
-              大切な人に、言葉を残そう。
-            </p>
-            <p style={{ fontSize: 12, color: "#9b898c", fontFamily: "Georgia,serif", lineHeight: 2, marginBottom: 22 }}>
-              JANEは「言えなかった」をなくすための<br/>生き活支援アプリです。
-            </p>
-            <a href="https://jaane.net?ref=yomei" target="_blank" rel="noopener"
-              style={{ display: "inline-block", background: "#d99099", color: "#fff8f4",
-                borderRadius: 999,
-                padding: "14px 36px", fontFamily: "Georgia,serif", fontSize: 13,
-                letterSpacing: 1, textDecoration: "none",
-                boxShadow: "0 12px 28px rgba(199,100,114,0.24)" }}>
-              JANEをはじめる（無料）
-            </a>
-          </div>
-
-          <Btn onClick={onRestart} full dim>↩ もう一度プレイする</Btn>
-        </div>
-      )}
+      <div className="stack" style={{ marginTop: 22 }}>
+        <a className="btn primary" href="https://jaane.net?ref=last-read" target="_blank" rel="noopener" style={{ textDecoration: "none" }}>
+          大切な人に言葉を残す
+        </a>
+        <Button onClick={onRestart}>もう一度体験する</Button>
+      </div>
     </div>
   );
 }
 
 function App() {
-  const [screen, setScreen] = useState("opening");
-  const [pov, setPov] = useState("self");
-  const [chapterIdx, setChapterIdx] = useState(0);
-  const [choiceResult, setChoiceResult] = useState(null);
-  const [impacts, setImpacts] = useState([]);
-  const [reflections, setReflections] = useState([]);
+  const [step, setStep] = useState(0);
+  const [openedApp, setOpenedApp] = useState(null);
+  const [draft, setDraft] = useState("");
+  const [answers, setAnswers] = useState(Array(questions.length).fill(""));
 
-  const chapter = CHAPTERS[chapterIdx];
-
-  const handleOpeningComplete = (p) => {
-    setPov(p);
-    setChapterIdx(0);
-    setChoiceResult(null);
-    setImpacts([]);
-    setReflections([]);
-    setScreen(p === "self" ? "selfIntro" : "chapter");
-  };
-
-  const handleChoice = (ch) => {
-    setChoiceResult(ch.result);
-    setImpacts(imp => [...imp, ch.impact]);
-  };
-
-  const handleReflect = (text) => {
-    setReflections(r => [...r, {chapter: chapter.label, text}]);
-  };
-
-  const handleNext = () => {
-    setChoiceResult(null);
-    if (chapterIdx < CHAPTERS.length - 1) setChapterIdx(i => i + 1);
-    else setScreen("funeral");
-  };
-
+  const next = () => setStep(s => s + 1);
   const restart = () => {
-    setChapterIdx(0); setChoiceResult(null);
-    setImpacts([]); setReflections([]);
-    setScreen("opening");
+    setStep(0);
+    setOpenedApp(null);
+    setDraft("");
+    setAnswers(Array(questions.length).fill(""));
   };
 
   return (
-    <div className="app-stage">
-      <div className="phone-shell">
-        <div className="phone-screen">
-          <div className="phone-notch" />
-          <div style={{ background: "#171214", minHeight: "100%", color: "#fff8f4", padding: "0 20px" }}>
-            {screen === "opening" && <Opening onComplete={handleOpeningComplete} />}
-            {screen === "selfIntro" && <SelfIntro onStart={() => setScreen("chapter")} />}
-            {screen === "chapter" && (
-              <div style={{maxWidth: 520, margin: "0 auto", paddingTop: 44}}>
-                <ChapterScreen
-                  key={chapterIdx}
-                  chapter={chapter}
-                  pov={pov}
-                  onChoice={handleChoice}
-                  choiceResult={choiceResult}
-                  onNext={handleNext}
-                  onReflect={handleReflect}
-                />
-              </div>
-            )}
-            {screen === "funeral" && <div style={{maxWidth: 500, margin: "0 auto", paddingTop: 44}}><FuneralScreen pov={pov} onContinue={() => setScreen("ending")} /></div>}
-            {screen === "ending" && <div style={{maxWidth: 500, margin: "0 auto", paddingTop: 44}}><EndingScreen impacts={impacts} reflections={reflections} onRestart={restart} /></div>}
-          </div>
+    <div className="stage">
+      <div className="phone">
+        <div className="screen">
+          <div className="notch" />
+          {step === 0 && <Intro onNext={next} />}
+          {step === 1 && <Hospital onNext={next} />}
+          {step === 2 && <Diagnosis onNext={next} />}
+          {step === 3 && <Denial onNext={next} onOpenApp={setOpenedApp} />}
+          {step === 4 && <Loneliness onNext={next} />}
+          {step === 5 && <Memories onNext={next} />}
+          {step === 6 && <Unsent draft={draft} setDraft={setDraft} onNext={next} />}
+          {step === 7 && <Quiet onNext={next} />}
+          {step === 8 && <ReturnToNow onNext={next} />}
+          {step === 9 && <Questions answers={answers} setAnswers={setAnswers} onNext={next} />}
+          {step >= 10 && <Testament answers={answers} draft={draft} onRestart={restart} />}
+          <AppModal app={openedApp} onClose={() => setOpenedApp(null)} />
         </div>
       </div>
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>
