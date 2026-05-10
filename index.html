@@ -298,100 +298,6 @@
   }
   .blackout .timebar,
   .blackout .eyebrow { opacity: 0.48; }
-  .scene-art {
-    position: absolute;
-    left: 26px;
-    right: 26px;
-    top: 76px;
-    height: 168px;
-    opacity: 0.34;
-    pointer-events: none;
-  }
-  .hospital-art .bed {
-    position: absolute;
-    left: 18px;
-    right: 76px;
-    bottom: 30px;
-    height: 34px;
-    border: 2px solid #5a4a4e;
-    border-left-width: 12px;
-    background: rgba(237,232,234,0.035);
-    box-shadow: 0 0 18px rgba(200,16,46,0.08);
-  }
-  .hospital-art .pillow {
-    position: absolute;
-    left: 34px;
-    bottom: 70px;
-    width: 54px;
-    height: 20px;
-    border: 2px solid #5a4a4e;
-    background: rgba(237,232,234,0.04);
-  }
-  .hospital-art .iv-stand {
-    position: absolute;
-    right: 34px;
-    bottom: 28px;
-    width: 2px;
-    height: 106px;
-    background: #5a4a4e;
-  }
-  .hospital-art .iv-stand::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: -16px;
-    width: 22px;
-    height: 32px;
-    border: 2px solid #5a4a4e;
-    background: rgba(237,232,234,0.035);
-  }
-  .hospital-art .monitor {
-    position: absolute;
-    right: 62px;
-    top: 30px;
-    width: 74px;
-    height: 42px;
-    border: 2px solid #5a4a4e;
-    background: rgba(8,6,8,0.78);
-  }
-  .hospital-art .heartbeat {
-    position: absolute;
-    right: 70px;
-    top: 48px;
-    width: 58px;
-    height: 12px;
-    background:
-      linear-gradient(90deg, transparent 0 8px, #c8102e 8px 10px, transparent 10px 18px, #c8102e 18px 20px, transparent 20px 26px, #c8102e 26px 28px, transparent 28px 100%);
-    opacity: 0.8;
-    animation: pulse 1.4s ease infinite;
-  }
-  .street-art .road {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 34px;
-    height: 2px;
-    background: #5a4a4e;
-  }
-  .street-art .phone-drop {
-    position: absolute;
-    right: 78px;
-    bottom: 42px;
-    width: 24px;
-    height: 38px;
-    border: 2px solid #5a4a4e;
-    transform: rotate(64deg);
-    background: rgba(237,232,234,0.035);
-  }
-  .street-art .blur-line {
-    position: absolute;
-    left: 28px;
-    right: 28px;
-    top: 46px;
-    height: 1px;
-    background: #3a2a2e;
-    box-shadow: 0 34px 0 #2a1a1e, 0 68px 0 #2a1a1e;
-  }
   .photo-art {
     position: relative;
     height: 96px;
@@ -677,32 +583,6 @@ function TimeBar({ days }) {
   );
 }
 
-function SceneArt({ label }) {
-  if (label === "STREET") {
-    return (
-      <div className="scene-art street-art">
-        <div className="blur-line" />
-        <div className="road" />
-        <div className="phone-drop" />
-      </div>
-    );
-  }
-
-  if (label === "HOSPITAL" || label === "DOCTOR") {
-    return (
-      <div className="scene-art hospital-art">
-        <div className="monitor" />
-        <div className="heartbeat" />
-        <div className="iv-stand" />
-        <div className="pillow" />
-        <div className="bed" />
-      </div>
-    );
-  }
-
-  return null;
-}
-
 function phaseClass(view) {
   if (view === "denialStory" || view === "denialHome") return "phase-89";
   if (view === "loneliness" || view === "lonelyCall") return "phase-72";
@@ -778,7 +658,6 @@ function StoryScene({ scene, onDone }) {
     <div className={`page center tap-page blackout ${scene.dark ? "dark-scene" : ""}`} onClick={advance}>
       <TimeBar days={scene.days} />
       <p className="eyebrow">{scene.label}</p>
-      <SceneArt label={scene.label} />
       <div className="line-stage">
         <div key={`${scene.label}-${lineIndex}`} className="line-group">
           <p className="story-line" style={{ fontSize }}>
