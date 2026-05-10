@@ -6,6 +6,7 @@
 
 - `index.html`: 公開されるアプリ本体です。ReactをCDNとBabel Standaloneで読み込んでいます。
 - `README.md`: GitHub上で表示される説明文です。
+- `docs/scenario.md`: アプリのコンセプト、世界観、感情導線、演出案をまとめたシナリオ設計書です。
 
 ## 公開方法
 
