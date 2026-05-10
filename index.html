@@ -70,10 +70,10 @@
   .story-line {
     color: #ede8ea;
     font-size: 17px;
-    line-height: 2.05;
+    line-height: 1.9;
     letter-spacing: 0;
-    text-align: left;
-    white-space: pre-line;
+    text-align: center;
+    white-space: nowrap;
     text-shadow: 0 0 18px rgba(200,16,46,0.16);
     animation: fadeWord 0.42s ease both;
   }
@@ -262,12 +262,13 @@
   }
   .line-group {
     width: 100%;
-    max-width: 330px;
-    min-height: 188px;
+    max-width: 100%;
+    min-height: 120px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 8px;
+    overflow: visible;
   }
   .blink { animation: blink 1.2s ease infinite; }
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -289,7 +290,7 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel">
-const { useMemo, useState } = React;
+const { useEffect, useMemo, useState } = React;
 
 const notifications = [
   { app: "仕事", icon: "💼", text: "山田部長：例の資料、今日中に確認できますか？" },
@@ -464,43 +465,49 @@ function TimeBar({ days }) {
   );
 }
 
-function chunkLines(lines, size = 3) {
-  const chunks = [];
-  for (let i = 0; i < lines.length; i += size) {
-    chunks.push(lines.slice(i, i + size));
-  }
-  return chunks;
-}
-
 function StoryScene({ scene, onDone }) {
-  const items = chunkLines(scene.lines).map(lines => ({ lines }));
-  const [itemIndex, setItemIndex] = useState(0);
-  const item = items[itemIndex];
-  const isLast = itemIndex >= items.length - 1;
-  const progress = ((itemIndex + 1) / items.length) * 100;
+  const [lineIndex, setLineIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const line = scene.lines[lineIndex];
+  const isLineDone = charIndex >= line.length;
+  const isLast = lineIndex >= scene.lines.length - 1;
+  const progress = ((lineIndex + 1) / scene.lines.length) * 100;
+
+  useEffect(() => {
+    setCharIndex(0);
+  }, [lineIndex, scene.label]);
+
+  useEffect(() => {
+    if (isLineDone) return;
+    const timer = setTimeout(() => setCharIndex(i => i + 1), 48);
+    return () => clearTimeout(timer);
+  }, [charIndex, isLineDone]);
 
   const advance = () => {
+    if (!isLineDone) {
+      setCharIndex(line.length);
+      return;
+    }
     if (isLast) onDone(scene.next);
-    else setItemIndex(i => i + 1);
+    else setLineIndex(i => i + 1);
   };
+
+  const fontSize = line.length > 30 ? 13 : line.length > 24 ? 14 : line.length > 18 ? 15 : 17;
 
   return (
     <div className={`page center tap-page blackout ${scene.dark ? "dark-scene" : ""}`} onClick={advance}>
       <TimeBar days={scene.days} />
       <p className="eyebrow">{scene.label}</p>
       <div className="line-stage">
-        {item.title ? (
-          <h1 key={`${scene.label}-${itemIndex}`} className="title">{item.title}</h1>
-        ) : (
-          <div key={`${scene.label}-${itemIndex}`} className="line-group">
-            {item.lines.map((line, i) => (
-              <p className="story-line" key={`${line}-${i}`}>{line}</p>
-            ))}
-          </div>
-        )}
+        <div key={`${scene.label}-${lineIndex}`} className="line-group">
+          <p className="story-line" style={{ fontSize }}>
+            {line.slice(0, charIndex)}
+            {!isLineDone && <span className="blink">▌</span>}
+          </p>
+        </div>
       </div>
       <div className="hint">
-        <span>{isLast ? "タップでつぎへ" : "タップで読む"}</span>
+        <span>{!isLineDone ? "タップで全文表示" : isLast ? "タップでつぎへ" : "タップで読む"}</span>
         <div className="progress"><span style={{ width: `${progress}%` }} /></div>
       </div>
     </div>
