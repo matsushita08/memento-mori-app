@@ -6,13 +6,71 @@
 <title>メメントモリアプリ | LAST SAVE</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #080608; color: #ede8ea; }
+  html, body, #root { min-height: 100%; }
+  body {
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 236, 224, 0.9), transparent 34%),
+      linear-gradient(145deg, #f8eee8 0%, #efe0da 45%, #dcc8c4 100%);
+    color: #fff8f4;
+    font-family: Georgia, "Hiragino Mincho ProN", "Yu Mincho", serif;
+  }
+  .app-stage {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+  }
+  .phone-shell {
+    width: min(100%, 430px);
+    height: min(860px, calc(100vh - 56px));
+    min-height: 640px;
+    padding: 14px;
+    border-radius: 42px;
+    background: linear-gradient(145deg, #21191b, #0f0c0d);
+    box-shadow: 0 28px 80px rgba(61, 38, 41, 0.28), inset 0 0 0 1px rgba(255, 248, 244, 0.08);
+  }
+  .phone-screen {
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 30px;
+    background: #171214;
+    box-shadow: inset 0 0 0 1px rgba(255, 248, 244, 0.06);
+  }
+  .phone-notch {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    z-index: 200;
+    width: 96px;
+    height: 20px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #120f10;
+    opacity: 0.88;
+    pointer-events: none;
+  }
+  @media (max-width: 560px) {
+    .app-stage { padding: 0; }
+    .phone-shell {
+      width: 100%;
+      height: 100vh;
+      min-height: 100vh;
+      padding: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .phone-screen { border-radius: 0; }
+    .phone-notch { display: none; }
+  }
   @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
   @keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
   textarea { resize: none; }
   ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-thumb { background: #1e0e12; }
+  ::-webkit-scrollbar-thumb { background: #3a2b2f; }
 </style>
 </head>
 <body>
@@ -166,7 +224,7 @@ function useCountdown(from, active) {
   return val;
 }
 
-function Cursor({ color = "#c8102e" }) {
+function Cursor({ color = "#c76472" }) {
   const [v, setV] = useState(true);
   useEffect(() => { const t = setInterval(() => setV(x => !x), 500); return () => clearInterval(t); }, []);
   return <span style={{color, opacity: v ? 1 : 0, userSelect: "none"}}>▌</span>;
@@ -178,14 +236,15 @@ function Btn({ children, onClick, disabled, full = false, dim = false }) {
     <button onClick={onClick} disabled={disabled}
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
-        background: disabled ? "transparent" : h ? "#c8102e" : "transparent",
-        border: `1px solid ${disabled ? "#2a1a1e" : h ? "#c8102e" : "#5a0612"}`,
-        color: disabled ? "#3a2a2e" : h ? "#ede8ea" : "#c8102e",
-        padding: "13px 20px", fontFamily: "'Georgia',serif", fontSize: 14,
+        background: disabled ? "transparent" : h ? "#d99099" : "rgba(255,248,244,0.035)",
+        border: `1px solid ${disabled ? "#56464a" : h ? "#d99099" : "#8f6269"}`,
+        borderRadius: 16,
+        color: disabled ? "#7e6b6e" : h ? "#fff8f4" : "#f2c2c8",
+        padding: "14px 18px", fontFamily: "'Georgia',serif", fontSize: 14,
         cursor: disabled ? "default" : "pointer", width: full ? "100%" : "auto",
-        textAlign: "left", transition: "all 0.15s", letterSpacing: 0.5,
+        textAlign: "left", transition: "all 0.15s", letterSpacing: 0,
         opacity: dim ? 0.5 : 1,
-        boxShadow: h && !disabled ? "0 0 12px rgba(200,16,46,0.2)" : "none",
+        boxShadow: h && !disabled ? "0 10px 24px rgba(199,100,114,0.18)" : "none",
       }}>
       {children}
     </button>
@@ -197,11 +256,11 @@ function DoctorLine({ text, isLast }) {
   return (
     <p style={{
       fontSize: text === "……" ? 18 : 16,
-      color: text === "残された時間は、長くありません。" ? "#c8102e"
-           : text === "やり残したことは、ありませんか？" ? "#ede8ea"
-           : "#8a7a7e",
-      fontFamily: "Georgia,serif", lineHeight: 1.9, letterSpacing: 1,
-      textShadow: text === "残された時間は、長くありません。" ? "0 0 20px rgba(200,16,46,0.3)" : "none",
+      color: text === "残された時間は、長くありません。" ? "#d99099"
+           : text === "やり残したことは、ありませんか？" ? "#fff8f4"
+           : "#b6a5a8",
+      fontFamily: "Georgia,serif", lineHeight: 1.9, letterSpacing: 0,
+      textShadow: text === "残された時間は、長くありません。" ? "0 10px 28px rgba(199,100,114,0.2)" : "none",
     }}>
       {displayed}{isLast && !done && <Cursor />}
     </p>
@@ -256,18 +315,20 @@ function Opening({ onComplete }) {
 
   return (
     <div style={{
-      position: "fixed", inset: 0, background: "#080608",
+      position: "absolute", inset: 0,
+      background: "linear-gradient(180deg, #201719 0%, #171214 58%, #191314 100%)",
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
-      padding: "48px 28px", zIndex: 100,
+      padding: "56px 28px 42px", zIndex: 100,
+      overflowY: "auto",
     }}>
       {phase === 0 && (
-        <p style={{ color: "#1a0e10", fontSize: 11, fontFamily: "Georgia,serif", letterSpacing: 4, opacity: brightness > 0 ? 0 : 0.6 }}>
+        <p style={{ color: "#7a6669", fontSize: 11, fontFamily: "Georgia,serif", letterSpacing: 4, opacity: brightness > 0 ? 0 : 0.6 }}>
           — 病院 —
         </p>
       )}
 
-      {phase >= 1 && (
+      {phase >= 1 && !showChoice && (
         <div style={{
           width: "100%", maxWidth: 420,
           filter: `blur(${blur}px)`,
@@ -275,7 +336,7 @@ function Opening({ onComplete }) {
           transition: "none",
         }}>
           {lineIdx === 0 && (
-            <p style={{ color: "#3a2a2e", fontSize: 12, fontFamily: "Georgia,serif", lineHeight: 2, textAlign: "center", letterSpacing: 2 }}>
+            <p style={{ color: "#7e6b6e", fontSize: 12, fontFamily: "Georgia,serif", lineHeight: 2, textAlign: "center", letterSpacing: 2 }}>
               白い天井。<br/>空調の音。<br/>遠くでナースコールが鳴っている。
             </p>
           )}
@@ -288,13 +349,13 @@ function Opening({ onComplete }) {
 
           {notifIdx >= 0 && (
             <div style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 8 }}>
-              <p style={{ fontSize: 10, color: "#3a2a2e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 4 }}>
+              <p style={{ fontSize: 10, color: "#7e6b6e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 4 }}>
                 — あなたのスマートフォンに —
               </p>
               {NOTIFICATIONS.slice(0, notifIdx + 1).map((n, i) => (
                 <div key={i} style={{
                   background: "rgba(255,255,255,0.04)",
-                  border: "1px solid #1e0e12",
+                  border: "1px solid #3a2b2f",
                   padding: "10px 14px",
                   display: "flex", gap: 10, alignItems: "center",
                   animation: "slideIn 0.4s ease",
@@ -302,13 +363,13 @@ function Opening({ onComplete }) {
                 }}>
                   <span style={{fontSize: 16}}>{n.icon}</span>
                   <div>
-                    <p style={{fontSize: 10, color: "#5a4a4e", fontFamily: "Georgia,serif", marginBottom: 2}}>{n.app}</p>
-                    <p style={{fontSize: 12, color: "#8a7a7e", fontFamily: "Georgia,serif"}}>{n.msg}</p>
+                    <p style={{fontSize: 10, color: "#9b898c", fontFamily: "Georgia,serif", marginBottom: 2}}>{n.app}</p>
+                    <p style={{fontSize: 12, color: "#b6a5a8", fontFamily: "Georgia,serif"}}>{n.msg}</p>
                   </div>
                 </div>
               ))}
               {notifIdx >= NOTIFICATIONS.length - 1 && (
-                <p style={{fontSize: 12, color: "#5a0612", fontFamily: "Georgia,serif", lineHeight: 2, marginTop: 8, letterSpacing: 1, textAlign: "center", animation: "fadeIn 1s ease"}}>
+                <p style={{fontSize: 12, color: "#7d4650", fontFamily: "Georgia,serif", lineHeight: 2, marginTop: 8, letterSpacing: 1, textAlign: "center", animation: "fadeIn 1s ease"}}>
                   これらが、<br/>急にどうでもよく見えた。
                 </p>
               )}
@@ -320,11 +381,11 @@ function Opening({ onComplete }) {
       {showChoice && (
         <div style={{ width: "100%", maxWidth: 420, animation: "fadeIn 1.2s ease", marginTop: 40 }}>
           <div style={{ textAlign: "center", marginBottom: 36 }}>
-            <p style={{ fontSize: 28, color: "#c8102e", fontFamily: "Georgia,serif", letterSpacing: 6, marginBottom: 6,
-              textShadow: "0 0 30px rgba(200,16,46,0.4)" }}>
+            <p style={{ fontSize: 28, color: "#f0b5bc", fontFamily: "Georgia,serif", letterSpacing: 4, marginBottom: 6,
+              textShadow: "0 12px 34px rgba(199,100,114,0.28)" }}>
               LAST SAVE
             </p>
-            <p style={{ fontSize: 11, color: "#5a4a4e", fontFamily: "Georgia,serif", letterSpacing: 3, lineHeight: 1.8 }}>
+            <p style={{ fontSize: 11, color: "#9b898c", fontFamily: "Georgia,serif", letterSpacing: 3, lineHeight: 1.8 }}>
               メメントモリアプリ<br/>最後に後悔する人は、多いです。<br/>でも、ちゃんと生き直した人もいます。
             </p>
           </div>
@@ -347,21 +408,21 @@ function SelfIntro({ onStart }) {
   const [showStart, setShowStart] = useState(false);
   useEffect(() => { setTimeout(() => setShowStart(true), 4000); }, []);
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "40px 28px", background: "#080608" }}>
-      <p style={{ fontSize: 11, color: "#5a0612", fontFamily: "Georgia,serif", letterSpacing: 4, marginBottom: 40 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100%", padding: "56px 28px 40px", background: "linear-gradient(180deg, #201719 0%, #171214 72%)" }}>
+      <p style={{ fontSize: 11, color: "#7d4650", fontFamily: "Georgia,serif", letterSpacing: 4, marginBottom: 40 }}>
         あなたの余命は、90日です。
       </p>
       <div style={{ textAlign: "center", marginBottom: 48 }}>
-        <p style={{ fontSize: 11, color: "#5a4a4e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 12 }}>残り</p>
-        <p style={{ fontSize: "clamp(64px,16vw,96px)", color: "#c8102e", fontFamily: "Georgia,serif", fontWeight: 700,
-          textShadow: "0 0 40px rgba(200,16,46,0.5)", letterSpacing: 4, lineHeight: 1 }}>
+        <p style={{ fontSize: 11, color: "#9b898c", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 12 }}>残り</p>
+        <p style={{ fontSize: "clamp(64px,16vw,96px)", color: "#f0b5bc", fontFamily: "Georgia,serif", fontWeight: 700,
+          textShadow: "0 16px 44px rgba(199,100,114,0.26)", letterSpacing: 2, lineHeight: 1 }}>
           {count}
         </p>
-        <p style={{ fontSize: 14, color: "#5a4a4e", fontFamily: "Georgia,serif", letterSpacing: 3, marginTop: 8 }}>日</p>
+        <p style={{ fontSize: 14, color: "#9b898c", fontFamily: "Georgia,serif", letterSpacing: 3, marginTop: 8 }}>日</p>
       </div>
       {showStart && (
         <div style={{animation: "fadeIn 0.8s ease", textAlign: "center"}}>
-          <p style={{fontSize: 12, color: "#5a4a4e", fontFamily: "Georgia,serif", lineHeight: 2.2, marginBottom: 32}}>
+          <p style={{fontSize: 12, color: "#9b898c", fontFamily: "Georgia,serif", lineHeight: 2.2, marginBottom: 32}}>
             この体験は、約10分です。<br/>
             あなたの言葉が、物語を作ります。
           </p>
@@ -409,21 +470,21 @@ function ChapterScreen({ chapter, pov, onChoice, choiceResult, onNext, onReflect
 
   return (
     <div style={{ width: "100%", maxWidth: 520, margin: "0 auto", padding: "0 0 60px" }}>
-      <div style={{ padding: "20px 0 16px", borderBottom: "1px solid #1e0e12", marginBottom: 24 }}>
+      <div style={{ padding: "20px 0 16px", borderBottom: "1px solid #3a2b2f", marginBottom: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <p style={{ fontSize: 10, color: "#c8102e", fontFamily: "Georgia,serif", letterSpacing: 4 }}>{chapter.label}</p>
-          <p style={{ fontSize: 11, color: "#3a2a2e", fontFamily: "Georgia,serif" }}>残り {chapter.daysLeft} 日</p>
+          <p style={{ fontSize: 10, color: "#c76472", fontFamily: "Georgia,serif", letterSpacing: 4 }}>{chapter.label}</p>
+          <p style={{ fontSize: 11, color: "#7e6b6e", fontFamily: "Georgia,serif" }}>残り {chapter.daysLeft} 日</p>
         </div>
-        <p style={{ fontSize: 17, color: "#ede8ea", fontFamily: "Georgia,serif", marginTop: 4 }}>{chapter.title}</p>
+        <p style={{ fontSize: 17, color: "#fff8f4", fontFamily: "Georgia,serif", marginTop: 4 }}>{chapter.title}</p>
       </div>
 
       <p style={{ fontSize: 15, color: "#c8bfc2", fontFamily: "Georgia,serif", lineHeight: 2.1, whiteSpace: "pre-line", marginBottom: 28, minHeight: 80 }}>
-        {sitText}{!sitDone && <Cursor color="#3a2a2e"/>}
+        {sitText}{!sitDone && <Cursor color="#7e6b6e"/>}
       </p>
 
       {(phase !== "situation") && (
-        <div style={{ padding: "12px 16px", borderLeft: "2px solid #5a0612", marginBottom: 28, background: "rgba(200,16,46,0.04)", animation: "fadeIn 0.5s ease" }}>
-          <p style={{ fontSize: 13, color: "#8a7a7e", fontFamily: "Georgia,serif", lineHeight: 1.9, whiteSpace: "pre-line" }}>
+        <div style={{ padding: "12px 16px", borderLeft: "2px solid #7d4650", marginBottom: 28, background: "rgba(199,100,114,0.04)", animation: "fadeIn 0.5s ease" }}>
+          <p style={{ fontSize: 13, color: "#b6a5a8", fontFamily: "Georgia,serif", lineHeight: 1.9, whiteSpace: "pre-line" }}>
             {chapter.event}
           </p>
         </div>
@@ -431,7 +492,7 @@ function ChapterScreen({ chapter, pov, onChoice, choiceResult, onNext, onReflect
 
       {phase === "choices" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 8, animation: "fadeIn 0.4s ease" }}>
-          <p style={{ fontSize: 10, color: "#3a2a2e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 8 }}>
+          <p style={{ fontSize: 10, color: "#7e6b6e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 8 }}>
             — どうしますか —
           </p>
           {chapter.choices.map(ch => (
@@ -444,7 +505,7 @@ function ChapterScreen({ chapter, pov, onChoice, choiceResult, onNext, onReflect
 
       {(phase === "result" || phase === "reflection" || phase === "done") && choiceResult && (
         <div style={{ animation: "fadeIn 0.5s ease", marginBottom: 24 }}>
-          <p style={{ fontSize: 14, color: "#ede8ea", fontFamily: "Georgia,serif", lineHeight: 2.2, whiteSpace: "pre-line" }}>
+          <p style={{ fontSize: 14, color: "#fff8f4", fontFamily: "Georgia,serif", lineHeight: 2.2, whiteSpace: "pre-line" }}>
             {resultText}{!resultDone && <Cursor/>}
           </p>
         </div>
@@ -452,8 +513,8 @@ function ChapterScreen({ chapter, pov, onChoice, choiceResult, onNext, onReflect
 
       {phase === "reflection" && !reflectSaved && (
         <div style={{ animation: "fadeIn 0.6s ease" }}>
-          <div style={{ padding: 20, border: "1px solid #1e0e12", background: "#0e0a0c", marginBottom: 14 }}>
-            <p style={{ fontSize: 10, color: "#c8102e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 12 }}>
+          <div style={{ padding: 20, border: "1px solid #3a2b2f", borderRadius: 18, background: "rgba(255,248,244,0.035)", marginBottom: 14 }}>
+            <p style={{ fontSize: 10, color: "#c76472", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 12 }}>
               — 語り手より —
             </p>
             <p style={{ fontSize: 14, color: "#c8bfc2", fontFamily: "Georgia,serif", lineHeight: 2, marginBottom: 16 }}>
@@ -461,7 +522,7 @@ function ChapterScreen({ chapter, pov, onChoice, choiceResult, onNext, onReflect
             </p>
             <textarea value={reflectText} onChange={e => setReflectText(e.target.value)}
               placeholder="あなたの言葉（スキップも可）"
-              style={{ width: "100%", background: "#080608", border: "1px solid #1e0e12", color: "#ede8ea",
+              style={{ width: "100%", background: "rgba(23,18,20,0.92)", border: "1px solid #3a2b2f", borderRadius: 12, color: "#fff8f4",
                 padding: "10px 12px", fontFamily: "Georgia,serif", fontSize: 13, outline: "none",
                 resize: "none", lineHeight: 1.8 }} rows={2} />
           </div>
@@ -474,8 +535,8 @@ function ChapterScreen({ chapter, pov, onChoice, choiceResult, onNext, onReflect
       {phase === "done" && (
         <div style={{ animation: "fadeIn 0.5s ease" }}>
           {reflectText && (
-            <p style={{ fontSize: 13, color: "#5a4a4e", fontFamily: "Georgia,serif", fontStyle: "italic",
-              borderLeft: "1px solid #1e0e12", paddingLeft: 14, marginBottom: 16, lineHeight: 1.9 }}>
+            <p style={{ fontSize: 13, color: "#9b898c", fontFamily: "Georgia,serif", fontStyle: "italic",
+              borderLeft: "1px solid #3a2b2f", paddingLeft: 14, marginBottom: 16, lineHeight: 1.9 }}>
               「{reflectText}」
             </p>
           )}
@@ -496,11 +557,11 @@ function FuneralScreen({ pov, onContinue }) {
   const {displayed, done} = useTypewriter(text, 22);
   return (
     <div style={{ width: "100%", maxWidth: 500, margin: "0 auto", padding: "40px 0 60px" }}>
-      <p style={{ fontSize: 10, color: "#5a0612", fontFamily: "Georgia,serif", letterSpacing: 5, marginBottom: 32, textAlign: "center" }}>
+      <p style={{ fontSize: 10, color: "#7d4650", fontFamily: "Georgia,serif", letterSpacing: 5, marginBottom: 32, textAlign: "center" }}>
         EPILOGUE
       </p>
-      <p style={{ fontSize: 15, color: "#5a4a4e", fontFamily: "Georgia,serif", lineHeight: 2.4, whiteSpace: "pre-line", minHeight: 200 }}>
-        {displayed}{!done && <Cursor color="#3a2a2e"/>}
+      <p style={{ fontSize: 15, color: "#9b898c", fontFamily: "Georgia,serif", lineHeight: 2.4, whiteSpace: "pre-line", minHeight: 200 }}>
+        {displayed}{!done && <Cursor color="#7e6b6e"/>}
       </p>
       {done && (
         <div style={{ marginTop: 40, animation: "fadeIn 0.8s ease" }}>
@@ -528,10 +589,10 @@ function EndingScreen({ impacts, reflections, onRestart }) {
 
   return (
     <div style={{ width: "100%", maxWidth: 500, margin: "0 auto", padding: "40px 0 80px" }}>
-      <p style={{ fontSize: 10, color: "#5a0612", fontFamily: "Georgia,serif", letterSpacing: 5, marginBottom: 28, textAlign: "center" }}>
+      <p style={{ fontSize: 10, color: "#7d4650", fontFamily: "Georgia,serif", letterSpacing: 5, marginBottom: 28, textAlign: "center" }}>
         ENDING
       </p>
-      <p style={{ fontSize: 13, color: "#c8102e", fontFamily: "Georgia,serif", letterSpacing: 2, marginBottom: 20 }}>
+      <p style={{ fontSize: 13, color: "#c76472", fontFamily: "Georgia,serif", letterSpacing: 2, marginBottom: 20 }}>
         {ending.title}
       </p>
       <p style={{ fontSize: 15, color: "#c8bfc2", fontFamily: "Georgia,serif", lineHeight: 2.3, whiteSpace: "pre-line", marginBottom: 32 }}>
@@ -539,14 +600,14 @@ function EndingScreen({ impacts, reflections, onRestart }) {
       </p>
 
       {done && reflections.filter(r => r.text).length > 0 && (
-        <div style={{ borderTop: "1px solid #1e0e12", paddingTop: 24, marginBottom: 32, animation: "fadeIn 0.8s ease" }}>
-          <p style={{ fontSize: 10, color: "#3a2a2e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 18 }}>
+        <div style={{ borderTop: "1px solid #3a2b2f", paddingTop: 24, marginBottom: 32, animation: "fadeIn 0.8s ease" }}>
+          <p style={{ fontSize: 10, color: "#7e6b6e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 18 }}>
             — あなたが残した言葉 —
           </p>
           {reflections.filter(r => r.text).map((r, i) => (
-            <div key={i} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #0e0a0c" }}>
-              <p style={{ fontSize: 10, color: "#5a0612", fontFamily: "Georgia,serif", marginBottom: 4 }}>{r.chapter}</p>
-              <p style={{ fontSize: 13, color: "#ede8ea", fontFamily: "Georgia,serif", fontStyle: "italic", lineHeight: 1.9 }}>「{r.text}」</p>
+            <div key={i} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #21191b" }}>
+              <p style={{ fontSize: 10, color: "#7d4650", fontFamily: "Georgia,serif", marginBottom: 4 }}>{r.chapter}</p>
+              <p style={{ fontSize: 13, color: "#fff8f4", fontFamily: "Georgia,serif", fontStyle: "italic", lineHeight: 1.9 }}>「{r.text}」</p>
             </div>
           ))}
         </div>
@@ -554,45 +615,46 @@ function EndingScreen({ impacts, reflections, onRestart }) {
 
       {showActions && (
         <div style={{ animation: "fadeIn 0.8s ease" }}>
-          <p style={{ fontSize: 10, color: "#3a2a2e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 16 }}>
+          <p style={{ fontSize: 10, color: "#7e6b6e", fontFamily: "Georgia,serif", letterSpacing: 3, marginBottom: 16 }}>
             — 今日から、始められること —
           </p>
           <div style={{ marginBottom: 32, display: "flex", flexDirection: "column", gap: 0 }}>
             {actions.map((a, i) => (
               <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start",
-                padding: "14px 0", borderBottom: "1px solid #0e0a0c" }}>
+                padding: "14px 0", borderBottom: "1px solid #21191b" }}>
                 <button onClick={() => setChecked(c => ({...c, [i]: !c[i]}))} style={{
-                  width: 16, height: 16, border: `1px solid ${checked[i] ? "#c8102e" : "#2a1a1e"}`,
-                  background: checked[i] ? "#c8102e" : "transparent", cursor: "pointer",
-                  flexShrink: 0, marginTop: 3, color: "#ede8ea", fontSize: 10, fontFamily: "Georgia,serif" }}>
+                  width: 16, height: 16, border: `1px solid ${checked[i] ? "#c76472" : "#56464a"}`,
+                  background: checked[i] ? "#c76472" : "transparent", cursor: "pointer",
+                  flexShrink: 0, marginTop: 3, color: "#fff8f4", fontSize: 10, fontFamily: "Georgia,serif" }}>
                   {checked[i] ? "✓" : ""}
                 </button>
                 <div>
-                  <p style={{ fontSize: 13, color: checked[i] ? "#3a2a2e" : "#ede8ea", fontFamily: "Georgia,serif",
+                  <p style={{ fontSize: 13, color: checked[i] ? "#7e6b6e" : "#fff8f4", fontFamily: "Georgia,serif",
                     marginBottom: 3, textDecoration: checked[i] ? "line-through" : "none" }}>{a.t}</p>
-                  <p style={{ fontSize: 11, color: "#5a4a4e", fontFamily: "Georgia,serif", lineHeight: 1.8 }}>{a.d}</p>
+                  <p style={{ fontSize: 11, color: "#9b898c", fontFamily: "Georgia,serif", lineHeight: 1.8 }}>{a.d}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div style={{ padding: "28px 24px", border: "1px solid #5a0612", background: "#0e0a0c",
+          <div style={{ padding: "28px 24px", border: "1px solid #8f6269", borderRadius: 22, background: "rgba(255,248,244,0.04)",
             textAlign: "center", marginBottom: 24,
-            boxShadow: "0 0 24px rgba(200,16,46,0.1)" }}>
-            <p style={{ fontSize: 10, color: "#c8102e", fontFamily: "Georgia,serif", letterSpacing: 4, marginBottom: 12 }}>
+            boxShadow: "0 16px 36px rgba(61,38,41,0.18)" }}>
+            <p style={{ fontSize: 10, color: "#c76472", fontFamily: "Georgia,serif", letterSpacing: 4, marginBottom: 12 }}>
               NEXT STEP
             </p>
-            <p style={{ fontSize: 16, color: "#ede8ea", fontFamily: "Georgia,serif", marginBottom: 10, lineHeight: 1.7 }}>
+            <p style={{ fontSize: 16, color: "#fff8f4", fontFamily: "Georgia,serif", marginBottom: 10, lineHeight: 1.7 }}>
               大切な人に、言葉を残そう。
             </p>
-            <p style={{ fontSize: 12, color: "#5a4a4e", fontFamily: "Georgia,serif", lineHeight: 2, marginBottom: 22 }}>
+            <p style={{ fontSize: 12, color: "#9b898c", fontFamily: "Georgia,serif", lineHeight: 2, marginBottom: 22 }}>
               JANEは「言えなかった」をなくすための<br/>生き活支援アプリです。
             </p>
             <a href="https://jaane.net?ref=yomei" target="_blank" rel="noopener"
-              style={{ display: "inline-block", background: "#c8102e", color: "#ede8ea",
+              style={{ display: "inline-block", background: "#d99099", color: "#fff8f4",
+                borderRadius: 999,
                 padding: "14px 36px", fontFamily: "Georgia,serif", fontSize: 13,
-                letterSpacing: 2, textDecoration: "none",
-                boxShadow: "0 0 20px rgba(200,16,46,0.3)" }}>
+                letterSpacing: 1, textDecoration: "none",
+                boxShadow: "0 12px 28px rgba(199,100,114,0.24)" }}>
               JANEをはじめる（無料）
             </a>
           </div>
@@ -645,24 +707,31 @@ function App() {
   };
 
   return (
-    <div style={{ background: "#080608", minHeight: "100vh", color: "#ede8ea", padding: "0 20px" }}>
-      {screen === "opening" && <Opening onComplete={handleOpeningComplete} />}
-      {screen === "selfIntro" && <SelfIntro onStart={() => setScreen("chapter")} />}
-      {screen === "chapter" && (
-        <div style={{maxWidth: 520, margin: "0 auto", paddingTop: 32}}>
-          <ChapterScreen
-            key={chapterIdx}
-            chapter={chapter}
-            pov={pov}
-            onChoice={handleChoice}
-            choiceResult={choiceResult}
-            onNext={handleNext}
-            onReflect={handleReflect}
-          />
+    <div className="app-stage">
+      <div className="phone-shell">
+        <div className="phone-screen">
+          <div className="phone-notch" />
+          <div style={{ background: "#171214", minHeight: "100%", color: "#fff8f4", padding: "0 20px" }}>
+            {screen === "opening" && <Opening onComplete={handleOpeningComplete} />}
+            {screen === "selfIntro" && <SelfIntro onStart={() => setScreen("chapter")} />}
+            {screen === "chapter" && (
+              <div style={{maxWidth: 520, margin: "0 auto", paddingTop: 44}}>
+                <ChapterScreen
+                  key={chapterIdx}
+                  chapter={chapter}
+                  pov={pov}
+                  onChoice={handleChoice}
+                  choiceResult={choiceResult}
+                  onNext={handleNext}
+                  onReflect={handleReflect}
+                />
+              </div>
+            )}
+            {screen === "funeral" && <div style={{maxWidth: 500, margin: "0 auto", paddingTop: 44}}><FuneralScreen pov={pov} onContinue={() => setScreen("ending")} /></div>}
+            {screen === "ending" && <div style={{maxWidth: 500, margin: "0 auto", paddingTop: 44}}><EndingScreen impacts={impacts} reflections={reflections} onRestart={restart} /></div>}
+          </div>
         </div>
-      )}
-      {screen === "funeral" && <div style={{maxWidth: 500, margin: "0 auto", paddingTop: 32}}><FuneralScreen pov={pov} onContinue={() => setScreen("ending")} /></div>}
-      {screen === "ending" && <div style={{maxWidth: 500, margin: "0 auto", paddingTop: 32}}><EndingScreen impacts={impacts} reflections={reflections} onRestart={restart} /></div>}
+      </div>
     </div>
   );
 }
