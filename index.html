@@ -73,7 +73,8 @@
     line-height: 1.9;
     letter-spacing: 0;
     text-align: center;
-    white-space: nowrap;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
     text-shadow: 0 0 18px rgba(200,16,46,0.16);
     animation: fadeWord 0.42s ease both;
   }
@@ -465,10 +466,37 @@ function TimeBar({ days }) {
   );
 }
 
+function wrapStoryLine(text, maxChars = 18) {
+  const chars = Array.from(text);
+  const lines = [];
+  let current = "";
+  let lastBreak = -1;
+
+  chars.forEach((char) => {
+    current += char;
+    if ("、。…！？".includes(char)) lastBreak = current.length;
+
+    if (current.length >= maxChars) {
+      if (lastBreak > 0 && lastBreak < current.length) {
+        lines.push(current.slice(0, lastBreak));
+        current = current.slice(lastBreak);
+      } else {
+        lines.push(current);
+        current = "";
+      }
+      lastBreak = -1;
+    }
+  });
+
+  if (current) lines.push(current);
+  return lines.join("\n");
+}
+
 function StoryScene({ scene, onDone }) {
   const [lineIndex, setLineIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const line = scene.lines[lineIndex];
+  const displayLine = wrapStoryLine(line);
   const isLineDone = charIndex >= line.length;
   const isLast = lineIndex >= scene.lines.length - 1;
   const progress = ((lineIndex + 1) / scene.lines.length) * 100;
@@ -492,7 +520,8 @@ function StoryScene({ scene, onDone }) {
     else setLineIndex(i => i + 1);
   };
 
-  const fontSize = line.length > 30 ? 13 : line.length > 24 ? 14 : line.length > 18 ? 15 : 17;
+  const visibleText = wrapStoryLine(line.slice(0, charIndex));
+  const fontSize = displayLine.split("\n").some(part => part.length > 18) ? 14 : 17;
 
   return (
     <div className={`page center tap-page blackout ${scene.dark ? "dark-scene" : ""}`} onClick={advance}>
@@ -501,7 +530,7 @@ function StoryScene({ scene, onDone }) {
       <div className="line-stage">
         <div key={`${scene.label}-${lineIndex}`} className="line-group">
           <p className="story-line" style={{ fontSize }}>
-            {line.slice(0, charIndex)}
+            {visibleText}
             {!isLineDone && <span className="blink">▌</span>}
           </p>
         </div>
