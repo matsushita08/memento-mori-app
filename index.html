@@ -9,10 +9,8 @@
   html, body, #root { min-height: 100%; }
   body {
     background:
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      #141821;
-    background-size: 16px 16px;
+      radial-gradient(circle at 50% 0%, rgba(60, 72, 98, 0.22), transparent 34%),
+      #08090d;
     color: #f8f8f8;
     font-family: "Courier New", "Hiragino Kaku Gothic ProN", "Yu Gothic", monospace;
   }
@@ -45,9 +43,7 @@
     overflow-x: hidden;
     border-radius: 30px;
     background:
-      linear-gradient(rgba(255,255,255,0.025) 50%, transparent 50%),
-      radial-gradient(circle at 50% 18%, #27324b 0%, #151a29 46%, #090b12 100%);
-    background-size: 100% 4px, 100% 100%;
+      radial-gradient(circle at 50% 18%, rgba(39, 50, 75, 0.62) 0%, rgba(12, 15, 25, 0.96) 48%, #05060a 100%);
     box-shadow: inset 0 0 0 2px #263044;
   }
   .notch {
@@ -64,7 +60,7 @@
   .page { min-height: calc(100% - 28px); padding: 38px 26px 34px; }
   .center { display: flex; min-height: calc(100% - 28px); flex-direction: column; justify-content: center; }
   .tap-page { cursor: pointer; user-select: none; }
-  .eyebrow { color: #9fb6ff; font-size: 10px; letter-spacing: 2px; margin-bottom: 14px; text-transform: uppercase; }
+  .eyebrow { color: #6d7899; font-size: 10px; letter-spacing: 3px; margin-bottom: 14px; text-transform: uppercase; }
   .title {
     color: #f8f8f8;
     font-size: 28px;
@@ -73,15 +69,17 @@
     text-shadow: 2px 2px 0 #000;
   }
   .story-line {
-    color: #111;
-    font-size: 18px;
-    line-height: 1.8;
+    color: #f1f4ff;
+    font-size: 19px;
+    line-height: 2;
     letter-spacing: 0;
+    text-align: center;
     white-space: pre-line;
-    animation: rise 0.32s ease both;
+    text-shadow: 0 0 18px rgba(170,190,255,0.14);
+    animation: fadeWord 0.42s ease both;
   }
   .story-sub {
-    color: #aab4cc;
+    color: #707b98;
     font-size: 12px;
     line-height: 1.8;
     margin-top: 18px;
@@ -94,21 +92,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #d8d8d8;
+    color: #7f89a5;
     font-size: 11px;
   }
   .progress {
     height: 3px;
     width: 88px;
     border-radius: 999px;
-    background: #32384a;
+    background: #202638;
     overflow: hidden;
   }
   .progress span {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: #f8f8f8;
+    background: #aebcff;
     transition: width 0.22s ease;
   }
   .timebar {
@@ -234,36 +232,36 @@
   }
   .dark-scene {
     background:
-      linear-gradient(rgba(255,255,255,0.025) 50%, transparent 50%),
-      radial-gradient(circle at 50% 18%, #222a3f 0%, #101522 55%, #05070d 100%);
-    background-size: 100% 4px, 100% 100%;
+      radial-gradient(circle at 50% 18%, rgba(34, 42, 63, 0.5) 0%, rgba(9, 12, 20, 0.98) 56%, #030407 100%);
     color: #fffaf4;
   }
   .dark-scene .story-line, .dark-scene .title { color: #fffaf4; }
   .dark-scene .story-sub, .dark-scene .hint { color: #cbd5e1; }
   .dark-scene .progress { background: #32384a; }
   .dark-scene .eyebrow { color: #9fb6ff; }
-  .dialogue {
-    position: relative;
-    min-height: 148px;
-    border: 4px solid #f8f8f8;
-    background: #f8f8f8;
-    color: #111;
-    padding: 18px 18px 28px;
-    box-shadow: 5px 5px 0 #000;
+  .blackout {
+    background:
+      radial-gradient(circle at 50% 42%, rgba(31, 39, 62, 0.34), transparent 42%),
+      #030407;
   }
-  .dialogue::after {
-    content: "▼";
-    position: absolute;
-    right: 16px;
-    bottom: 8px;
-    color: #111;
-    font-size: 13px;
-    animation: blink 1s steps(1) infinite;
+  .blackout .timebar,
+  .blackout .eyebrow { opacity: 0.48; }
+  .line-stage {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 4px 84px;
   }
-  .dialogue .story-line { color: #111; }
+  .line-stage .title {
+    color: #f1f4ff;
+    font-size: 30px;
+    text-align: center;
+    text-shadow: 0 0 24px rgba(170,190,255,0.18);
+  }
   .blink { animation: blink 1.2s ease infinite; }
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeWord { from { opacity: 0; transform: translateY(6px); filter: blur(3px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
   @keyframes blink { 50% { opacity: 0.25; } }
 
   @media (max-width: 560px) {
@@ -460,13 +458,12 @@ function StoryScene({ scene, onDone }) {
   };
 
   return (
-    <div className={`page center tap-page ${scene.dark ? "dark-scene" : ""}`} onClick={advance}>
+    <div className={`page center tap-page blackout ${scene.dark ? "dark-scene" : ""}`} onClick={advance}>
       <TimeBar days={scene.days} />
       <p className="eyebrow">{scene.label}</p>
-      <div style={{ flex: 1 }} />
-      <div className="dialogue">
+      <div className="line-stage">
         {lineIndex === 0 && scene.label === "STORY" ? (
-          <h1 className="title" style={{ color: "#111", textShadow: "none", fontSize: 24 }}>{line}</h1>
+          <h1 key={`${scene.label}-${lineIndex}`} className="title">{line}</h1>
         ) : (
           <p key={`${scene.label}-${lineIndex}`} className="story-line">{line}</p>
         )}
