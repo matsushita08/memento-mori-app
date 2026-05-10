@@ -45,6 +45,22 @@
       radial-gradient(circle at 50% 18%, rgba(200,16,46,0.12) 0%, rgba(14,10,12,0.96) 45%, #080608 100%);
     box-shadow: inset 0 0 0 1px #1e0e12;
   }
+  .screen.phase-89 {
+    filter: brightness(0.98);
+  }
+  .screen.phase-72 {
+    filter: brightness(0.82) saturate(0.9);
+  }
+  .screen.phase-45 {
+    filter: brightness(0.95) sepia(0.12);
+  }
+  .screen.phase-28 {
+    filter: brightness(0.88) saturate(0.85);
+  }
+  .screen.phase-7,
+  .screen.phase-now {
+    filter: brightness(0.68) saturate(0.75);
+  }
   .notch {
     position: sticky;
     top: 8px;
@@ -141,6 +157,40 @@
   }
   .btn:hover { background: #ede8ea; color: #0e0a0c; box-shadow: 4px 4px 0 #050305; }
   .btn.primary { background: #5a0612; color: #ede8ea; border-color: #ede8ea; text-align: center; }
+  .rpg-menu {
+    display: grid;
+    grid-template-columns: 0.86fr 1.14fr;
+    gap: 12px;
+    margin: 22px 0;
+  }
+  .command-menu {
+    border: 3px solid #ede8ea;
+    background: #0e0a0c;
+    padding: 12px 10px;
+    box-shadow: 4px 4px 0 #050305;
+  }
+  .command-button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #ede8ea;
+    text-align: left;
+    padding: 7px 4px;
+    cursor: pointer;
+  }
+  .command-button::before {
+    content: "▶";
+    display: inline-block;
+    width: 18px;
+    color: #c8102e;
+  }
+  .status-window {
+    border: 3px solid #ede8ea;
+    background: #0e0a0c;
+    padding: 14px 12px;
+    box-shadow: 4px 4px 0 #050305;
+    min-height: 178px;
+  }
   .stack { display: flex; flex-direction: column; gap: 10px; }
   .card {
     border: 3px solid #ede8ea;
@@ -342,6 +392,43 @@
     background: #3a2a2e;
     box-shadow: 0 34px 0 #2a1a1e, 0 68px 0 #2a1a1e;
   }
+  .photo-art {
+    position: relative;
+    height: 96px;
+    margin: 4px 0 14px;
+    opacity: 0.45;
+  }
+  .photo-art .album {
+    position: absolute;
+    left: 6px;
+    top: 18px;
+    width: 92px;
+    height: 58px;
+    border: 2px solid #5a4a4e;
+    transform: rotate(-5deg);
+    background:
+      linear-gradient(135deg, transparent 0 56%, rgba(200,16,46,0.14) 56% 62%, transparent 62%),
+      rgba(237,232,234,0.035);
+  }
+  .photo-art .album:nth-child(2) {
+    left: 74px;
+    top: 12px;
+    transform: rotate(4deg);
+  }
+  .photo-art .album:nth-child(3) {
+    left: 150px;
+    top: 24px;
+    transform: rotate(-2deg);
+  }
+  .photo-art .sun {
+    position: absolute;
+    right: 28px;
+    top: 18px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #5a4a4e;
+    border-radius: 50%;
+  }
   .line-stage {
     display: flex;
     flex: 1;
@@ -377,6 +464,16 @@
     .screen { border-radius: 0; }
     .notch { display: none; }
     .page { padding-top: 44px; }
+    .rpg-menu {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .status-window {
+      min-height: 112px;
+    }
+    .photo-art .album:nth-child(3) {
+      left: 132px;
+    }
   }
 </style>
 </head>
@@ -549,7 +646,26 @@ function nowText() {
 }
 
 function Button({ children, onClick, primary=false }) {
-  return <button className={`btn ${primary ? "primary" : ""}`} onClick={onClick}>{children}</button>;
+  return <button className={`btn ${primary ? "primary" : ""}`} onClick={(event) => { playTone("select"); onClick?.(event); }}>{children}</button>;
+}
+
+let audioContext;
+function playTone(kind = "type") {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    audioContext = audioContext || new Ctx();
+    if (audioContext.state === "suspended") audioContext.resume();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.value = kind === "select" ? 220 : 740;
+    gain.gain.value = kind === "select" ? 0.025 : 0.008;
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + (kind === "select" ? 0.055 : 0.018));
+  } catch (_) {}
 }
 
 function TimeBar({ days }) {
@@ -585,6 +701,16 @@ function SceneArt({ label }) {
   }
 
   return null;
+}
+
+function phaseClass(view) {
+  if (view === "denialStory" || view === "denialHome") return "phase-89";
+  if (view === "loneliness" || view === "lonelyCall") return "phase-72";
+  if (view === "memoryIntro" || view === "memories") return "phase-45";
+  if (view === "unsentIntro" || view === "unsent") return "phase-28";
+  if (view === "quiet") return "phase-7";
+  if (view === "returnNow" || view === "questions" || view === "testament") return "phase-now";
+  return "phase-start";
 }
 
 function wrapStoryLine(text, maxChars = 18) {
@@ -628,11 +754,15 @@ function StoryScene({ scene, onDone }) {
 
   useEffect(() => {
     if (isLineDone) return;
-    const timer = setTimeout(() => setCharIndex(i => i + 1), 48);
+    const timer = setTimeout(() => {
+      setCharIndex(i => i + 1);
+      if (charIndex % 2 === 0) playTone("type");
+    }, 48);
     return () => clearTimeout(timer);
   }, [charIndex, isLineDone]);
 
   const advance = () => {
+    playTone("select");
     if (!isLineDone) {
       setCharIndex(line.length);
       return;
@@ -669,6 +799,7 @@ function NotificationScene({ onDone }) {
   const [visible, setVisible] = useState(1);
   const isLast = visible >= notifications.length;
   const advance = () => {
+    playTone("select");
     if (isLast) onDone("diagnosis");
     else setVisible(v => v + 1);
   };
@@ -695,21 +826,33 @@ function NotificationScene({ onDone }) {
 }
 
 function DenialHome({ onNext, onOpenApp }) {
+  const [selectedApp, setSelectedApp] = useState(denialApps[0]);
   return (
     <div className="page">
       <TimeBar days={89} />
-      <p className="eyebrow">PHONE</p>
+      <p className="eyebrow">COMMAND</p>
       <h2 className="title" style={{ fontSize: 24 }}>いつもの画面</h2>
-      <p className="message-text" style={{ marginTop: 10 }}>アプリをひとつ開いてもいい。何も見ず、夜に進んでもいい。</p>
-      <div className="app-grid">
-        {denialApps.map((app) => (
-          <button className="app-icon" key={app.name} onClick={() => onOpenApp(app)}>
-            <span>{app.icon}</span>
-            <small>{app.name}</small>
-          </button>
-        ))}
+      <p className="message-text" style={{ marginTop: 10 }}>コマンドを選ぶ。現実から目をそらすように。</p>
+      <div className="rpg-menu">
+        <div className="command-menu">
+          {denialApps.map((app) => (
+            <button
+              className="command-button"
+              key={app.name}
+              onMouseEnter={() => setSelectedApp(app)}
+              onFocus={() => setSelectedApp(app)}
+              onClick={() => { playTone("select"); onOpenApp(app); }}
+            >
+              {app.name}
+            </button>
+          ))}
+        </div>
+        <div className="status-window">
+          <p className="message-name">{selectedApp.name}</p>
+          <p className="message-text">{selectedApp.text}</p>
+        </div>
       </div>
-      <Button primary onClick={() => onNext("loneliness")}>夜になる</Button>
+      <Button primary onClick={() => onNext("loneliness")}>にげる</Button>
     </div>
   );
 }
@@ -751,6 +894,12 @@ function Memories({ onNext }) {
     <div className="page">
       <TimeBar days={45} />
       <p className="eyebrow">PHOTO FOLDER</p>
+      <div className="photo-art" aria-hidden="true">
+        <div className="album" />
+        <div className="album" />
+        <div className="album" />
+        <div className="sun" />
+      </div>
       <div className="stack" style={{ marginTop: 16 }}>
         {memories.map((m) => (
           <div className="memory" key={m.title}>
@@ -848,7 +997,7 @@ function App() {
   return (
     <div className="stage">
       <div className="phone">
-        <div className="screen">
+        <div className={`screen ${phaseClass(view)}`}>
           <div className="notch" />
           {scene && <StoryScene key={view} scene={scene} onDone={setView} />}
           {view === "notifications" && <NotificationScene onDone={setView} />}
