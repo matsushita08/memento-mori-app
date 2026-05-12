@@ -10,9 +10,35 @@ type PixelVisualProps = {
 
 const recentPhotos = ["コーヒー", "スクショ", "駅前", "動画", "ご飯", "空", "鏡", "メモ", "夏", "踏切", "海", "食卓"];
 
+const sceneImages: Partial<Record<VisualType, string>> = {
+  street_crossing: "images/scenes/street_crossing.png",
+  hospital_ceiling: "images/scenes/hospital_ceiling.png",
+  doctor_view: "images/scenes/doctor_view.png",
+  hospital_night: "images/scenes/hospital_night.png",
+  camera_roll: "images/scenes/camera_roll.png"
+};
+
 export function PixelVisual({ type, noiseLevel }: PixelVisualProps) {
   const mood = getTimeMood();
   const clock = formatClock();
+  const imageSrc = sceneImages[type];
+
+  if (imageSrc) {
+    return (
+      <div className={`pixel-panel relative h-56 overflow-hidden ${type === "hospital_night" ? "bg-ink" : "bg-gameboy"}`}>
+        <img
+          src={imageSrc}
+          alt=""
+          className="h-full w-full object-cover"
+          draggable={false}
+        />
+        {type === "street_crossing" && <div className="absolute left-3 top-3 max-w-[72%] bg-gameboy/70 px-2 py-1 text-[8px] text-pixel">{mood.copy}</div>}
+        {type === "hospital_night" && <div className="absolute right-3 top-3 bg-ink/60 px-2 py-1 text-[10px] text-mint">{clock}</div>}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent" />
+        <NoiseDots level={Math.max(0, noiseLevel - 2)} />
+      </div>
+    );
+  }
 
   if (type === "title") {
     return (
