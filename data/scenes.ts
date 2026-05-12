@@ -23,12 +23,7 @@ export const scenes: Scene[] = [
       "でも、言葉の形までは聞き取れない。",
       "スマホが手から滑り落ちる音だけが、やけにはっきり聞こえた。"
     ],
-    question: "最近、「ちゃんと空を見た」記憶はありますか？",
-    choices: [
-      { label: "ある", response: "その時の空の色を、まだ覚えていますか？" },
-      { label: "思い出せない", response: "毎日は、気づかないうちに過ぎていく。" },
-      { label: "空なんて見てない", response: "世界を見ているつもりで、画面ばかり見ていた。" }
-    ],
+    choices: [{ label: "目を開ける" }],
     visualType: "street_crossing",
     noiseLevel: 5
   },
