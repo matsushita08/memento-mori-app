@@ -1,29 +1,59 @@
-# メメントモリアプリ
+# 余白
 
-人生の残り時間を疑似体験し、大切な人への言葉を残すきっかけを作るスタンドアロンWebアプリです。
+「死を体験するアプリ」ではなく、「生きる感覚を取り戻す旅」として設計した、スマホファーストの感情没入型ナラティブRPG MVPです。
 
-## ファイル構成
+ゲームボーイ風ピクセルUIの中に、現代のスマホ通知、SNS、LINE風メッセージ、カメラロール、未送信の下書きを組み込んでいます。
 
-- `index.html`: 公開されるアプリ本体です。ReactをCDNとBabel Standaloneで読み込んでいます。
-- `README.md`: GitHub上で表示される説明文です。
-- `docs/scenario.md`: アプリのコンセプト、世界観、感情導線、演出案をまとめたシナリオ設計書です。
+## 技術構成
 
-## 公開方法
+- Next.js
+- TypeScript
+- Tailwind CSS
+- フロントのみ
+- localStorage に選択内容と未送信テキストを保存
 
-このリポジトリはGitHub Pagesで公開します。
+## 起動方法
 
-公開URL:
-
-```text
-https://matsushita08.github.io/memento-mori-app/
+```bash
+npm install
+npm run dev
 ```
 
-## 技術メモ
+ブラウザで `http://localhost:3000` を開きます。
 
-ビルド環境は不要です。`index.html` をブラウザで開くだけで動きます。
+## ディレクトリ構成
 
-Reactは以下のCDNから読み込んでいます。
+```text
+app/
+  layout.tsx
+  page.tsx
+  globals.css
+components/
+  ChoiceList.tsx
+  PhoneFrame.tsx
+  PixelVisual.tsx
+  SpecialScreens.tsx
+data/
+  scenes.ts
+lib/
+  audio.ts
+  storage.ts
+  time.ts
+types/
+  game.ts
+public/
+  images/scenes/
+  audio/
+```
 
-- React 18
-- ReactDOM 18
-- Babel Standalone
+## 素材差し替え
+
+ピクセル画像は現状 CSS プレースホルダーです。後から以下に画像を置いて `PixelVisual.tsx` 側で差し替えられます。
+
+- `public/images/scenes/street_crossing.*`
+- `public/images/scenes/hospital_ceiling.*`
+- `public/images/scenes/doctor_view.*`
+- `public/images/scenes/hospital_night.*`
+- `public/images/scenes/camera_roll.*`
+
+音声は `lib/audio.ts` に管理構造だけ用意しています。実ファイルは後から `public/audio/` に追加してください。

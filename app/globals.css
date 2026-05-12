@@ -1,0 +1,234 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-pixel: "Courier New";
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: #0d1114;
+}
+
+body {
+  font-family: var(--font-pixel), ui-monospace, monospace;
+  letter-spacing: 0;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+@layer components {
+  .phone-shell {
+    image-rendering: pixelated;
+  }
+
+  .pixel-panel {
+    border: 4px solid #22312a;
+    box-shadow: 6px 6px 0 #22312a;
+    image-rendering: pixelated;
+  }
+
+  .choice-button {
+    position: relative;
+    z-index: 40;
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1rem 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    border: 4px solid #22312a;
+    background: #eaf7ff;
+    padding: 0.7rem 0.8rem;
+    text-align: left;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #22312a;
+    box-shadow: 4px 4px 0 #22312a;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .choice-button:active {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 #22312a;
+  }
+
+  .question-text {
+    border-left: 4px solid #22312a;
+    padding-left: 0.75rem;
+    font-size: 0.86rem;
+    line-height: 1.8;
+  }
+
+  .typewriter-area {
+    position: relative;
+    z-index: 10;
+    display: block;
+    width: 100%;
+    min-height: 9.5rem;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .type-caret {
+    display: inline-block;
+    margin-left: 0.1rem;
+    animation: blink 900ms steps(2, start) infinite;
+  }
+}
+
+.pixel-grid {
+  background-image:
+    linear-gradient(rgba(34, 49, 42, .22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 49, 42, .22) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+.scanline {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.16) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+}
+
+.static-noise {
+  background-image:
+    radial-gradient(circle at 12% 22%, rgba(34, 49, 42, .32) 0 1px, transparent 1px),
+    radial-gradient(circle at 68% 44%, rgba(255, 255, 255, .28) 0 1px, transparent 1px),
+    radial-gradient(circle at 42% 78%, rgba(34, 49, 42, .24) 0 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.vital-overlay {
+  opacity: 0;
+  transition: opacity 700ms ease, box-shadow 900ms ease;
+}
+
+.vital-noisy .vital-overlay {
+  opacity: .1;
+  box-shadow: inset 0 0 0 999px rgba(255, 255, 255, .08);
+}
+
+.vital-uneasy .vital-overlay {
+  opacity: .14;
+  box-shadow: inset 0 0 60px rgba(13, 17, 20, .25);
+}
+
+.vital-critical .vital-overlay {
+  opacity: .34;
+  box-shadow:
+    inset 0 0 0 999px rgba(13, 17, 20, .08),
+    inset 0 0 120px rgba(13, 17, 20, .62);
+  animation: pressure 1800ms ease-in-out infinite;
+}
+
+.vital-night .vital-overlay {
+  opacity: .44;
+  box-shadow:
+    inset 0 0 0 999px rgba(13, 17, 20, .12),
+    inset 0 0 150px rgba(13, 17, 20, .78);
+}
+
+.vital-clear .vital-overlay {
+  opacity: .02;
+}
+
+.breath-ring {
+  animation: breathe 4.6s ease-in-out infinite;
+  box-shadow: 0 0 24px rgba(217, 242, 200, .28);
+}
+
+.notification-card {
+  animation: notifyIn 720ms steps(4, end) both;
+}
+
+.notification-pulse {
+  animation:
+    notifyIn 720ms steps(4, end) both,
+    callPulse 1400ms steps(2, end) 900ms 3;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #22312a;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes pressure {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.025);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(.86);
+    opacity: .62;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes notifyIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes callPulse {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-2px);
+  }
+
+  50% {
+    transform: translateX(2px);
+  }
+}
