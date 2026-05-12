@@ -4,6 +4,7 @@ const KEY = "yohaku-game-state";
 
 export const initialGameState: GameState = {
   sceneIndex: 0,
+  playerName: "",
   choices: {},
   responses: {},
   unsentDraft: ""

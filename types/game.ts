@@ -45,6 +45,7 @@ export type Scene = {
 
 export type GameState = {
   sceneIndex: number;
+  playerName: string;
   choices: Record<string, string>;
   responses: Record<string, string>;
   unsentDraft: string;

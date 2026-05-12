@@ -4,10 +4,9 @@ export const scenes: Scene[] = [
   {
     id: "TITLE",
     title: "余白",
-    body: ["生きる感覚を、取り戻す旅。"],
-    choices: [{ label: "つづける" }, { label: "はじめから", value: "restart" }],
+    body: [],
     visualType: "title",
-    noiseLevel: 4
+    noiseLevel: 2
   },
   {
     id: "STREET",
@@ -37,6 +36,7 @@ export const scenes: Scene[] = [
       "消毒液の匂い。",
       "遠くで鳴る心電図。",
       "誰かがカーテンの向こうで、低い声で話している。",
+      "看護師が、{name}さん、と呼んだ気がした。",
       "スマホには、いつも通り通知が並んでいる。"
     ],
     choices: [{ label: "スマホを見る" }],
@@ -67,6 +67,7 @@ export const scenes: Scene[] = [
     id: "DOCTOR",
     title: "検査結果",
     body: [
+      "{name}さん。",
       "検査結果ですが……",
       "残された時間は、",
       "長くありません。",
@@ -107,7 +108,7 @@ export const scenes: Scene[] = [
     body: [
       "どうでもいい話なんだけどさ",
       "駅前のラーメン屋なくなるらしいw",
-      "てか来週飲みいける？",
+      "{name}、てか来週飲みいける？",
       "入力欄が光っている。",
       "でも、何を返せばいいのかわからない。"
     ],

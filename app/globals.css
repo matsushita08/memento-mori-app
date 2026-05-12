@@ -65,6 +65,11 @@ textarea {
     box-shadow: 1px 1px 0 #22312a;
   }
 
+  .choice-button:disabled {
+    cursor: default;
+    opacity: .45;
+  }
+
   .question-text {
     border-left: 4px solid #22312a;
     padding-left: 0.75rem;
@@ -91,6 +96,23 @@ textarea {
     display: inline-block;
     margin-left: 0.1rem;
     animation: blink 900ms steps(2, start) infinite;
+  }
+
+  .title-choice {
+    border-color: #d9f2c8;
+    background: #d9f2c8;
+    color: #10171a;
+    box-shadow: 4px 4px 0 rgba(217, 242, 200, .35);
+  }
+
+  .title-reset {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: .6rem;
+    color: rgba(217, 242, 200, .62);
+    font-size: .72rem;
+    text-align: center;
   }
 }
 
@@ -151,6 +173,12 @@ textarea {
 
 .vital-clear .vital-overlay {
   opacity: .02;
+}
+
+.title-gate {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(217, 242, 200, .08), transparent 28%),
+    linear-gradient(180deg, #050708 0%, #0d1114 55%, #10171a 100%);
 }
 
 .breath-ring {

@@ -4,6 +4,68 @@ import { useState } from "react";
 import { formatClock } from "@/lib/time";
 import type { GameState, Scene } from "@/types/game";
 
+export function NameGate({
+  initialName,
+  onStart,
+  onReset
+}: {
+  initialName: string;
+  onStart: (name: string) => void;
+  onReset: () => void;
+}) {
+  const [name, setName] = useState(initialName);
+
+  function submit() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    onStart(trimmed);
+  }
+
+  return (
+    <div className="title-gate min-h-full bg-ink px-5 py-8 text-mint">
+      <div className="mx-auto flex min-h-[620px] max-w-sm flex-col justify-between">
+        <div className="space-y-8">
+          <div>
+            <p className="mb-4 text-[10px] opacity-60">ロックされた記憶</p>
+            <h1 className="text-5xl leading-none text-frost">余白</h1>
+          </div>
+
+          <div className="space-y-4 text-sm leading-loose text-frost/85">
+            <p>途中で止まった通知がある。</p>
+            <p>開きかけの画面が、まだ暗いまま残っている。</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <label className="block text-[10px] text-mint/70" htmlFor="player-name">
+            下の名前
+          </label>
+          <input
+            id="player-name"
+            className="w-full border-4 border-mint bg-black px-3 py-3 text-xl text-frost outline-none"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") submit();
+            }}
+            autoComplete="given-name"
+            inputMode="text"
+            maxLength={12}
+            placeholder="例：はる"
+          />
+          <button className="choice-button title-choice" type="button" disabled={!name.trim()} onClick={submit}>
+            <span>▶</span>
+            <span>続きを開く</span>
+          </button>
+          <button className="title-reset" type="button" onClick={onReset}>
+            はじめから
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LockScreen() {
   const notifications = [
     ["取引先", "こちらの件、いかがでしょうか。"],
@@ -121,6 +183,7 @@ export function DraftInput({
 }
 
 export function YourWords({ state }: { state: GameState }) {
+  const name = state.playerName || "あなた";
   const memory = state.choices.CAMERA_ROLL || "誰にも見せなかった時間";
   const wish = state.choices.RETURN_TO_NOW || "今日を後回しにしないこと";
   const draft = state.unsentDraft.trim() || "まだ、うまく言葉にならない。";
@@ -131,13 +194,13 @@ export function YourWords({ state }: { state: GameState }) {
   return (
     <div className="space-y-5 text-sm leading-loose">
       <p>
-        あなたが最後まで握っていたものは、<br />
+        {name}が最後まで握っていたものは、<br />
         成功ではなく、<br />
         「{memory}」<br />
         のような、誰にも見せなかった時間でした。
       </p>
       <p>
-        あなたは、<br />
+        {name}は、<br />
         誰かに会いたかった。
       </p>
       <p>
