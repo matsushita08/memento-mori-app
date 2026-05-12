@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type TypewriterTextProps = {
   lines: string[];
@@ -12,6 +12,7 @@ export function TypewriterText({ lines, speed = 42, onComplete }: TypewriterText
   const [lineIndex, setLineIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const [done, setDone] = useState(lines.length === 0);
+  const endRef = useRef<HTMLDivElement | null>(null);
 
   const currentLine = lines[lineIndex] || "";
   const visibleLines = useMemo(() => {
@@ -37,6 +38,13 @@ export function TypewriterText({ lines, speed = 42, onComplete }: TypewriterText
       return () => window.clearTimeout(timer);
     }
   }, [charIndex, currentLine.length, done, onComplete, speed]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end"
+    });
+  }, [visibleLines, done]);
 
   function advance() {
     if (done) return;
@@ -66,6 +74,7 @@ export function TypewriterText({ lines, speed = 42, onComplete }: TypewriterText
         ))}
       </div>
       {!done && <div className="mt-4 text-right text-[10px] opacity-60">TAP</div>}
+      <div ref={endRef} aria-hidden="true" />
     </button>
   );
 }
