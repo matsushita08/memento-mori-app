@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LAST SAVE - Visual Novel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #game { width: 100%; min-height: 100%; }
+  body {
+    background: #05070c;
+    color: #fff;
+    font-family: "DotGothic16", system-ui, sans-serif;
+    overflow: hidden;
+  }
+  button, textarea { font: inherit; }
+  .screen {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100vh;
+    overflow: hidden;
+    cursor: pointer;
+    background: #05070c;
+  }
+  .bg {
+    position: absolute;
+    inset: 0;
+    transition: background 0.7s ease, filter 0.7s ease;
+  }
+  .bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(255,255,255,0.025) 50%, transparent 50%),
+      radial-gradient(circle at 50% 38%, transparent 0 24%, rgba(0,0,0,0.4) 58%, rgba(0,0,0,0.86) 100%);
+    background-size: 100% 4px, 100% 100%;
+    mix-blend-mode: screen;
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .bg::after {
+    content: "";
+    position: absolute;
+    inset: -18px;
+    background: radial-gradient(circle at 50% 50%, transparent 0 48%, rgba(0,0,0,0.78) 100%);
+    pointer-events: none;
+  }
+  .hospital-hall {
+    background:
+      linear-gradient(90deg, rgba(4,8,18,0.95), rgba(23,39,63,0.88) 45%, rgba(236,247,255,0.2) 50%, rgba(8,15,30,0.96)),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0 3px, transparent 3px 78px),
+      linear-gradient(#09111f, #02040a);
+  }
+  .ordinary-night {
+    background:
+      radial-gradient(circle at 16% 18%, rgba(255,255,255,0.22), transparent 9%),
+      radial-gradient(circle at 74% 28%, rgba(120,170,255,0.18), transparent 14%),
+      repeating-linear-gradient(90deg, transparent 0 44px, rgba(255,255,255,0.08) 44px 46px),
+      linear-gradient(180deg, #121a25, #05070c 68%);
+  }
+  .sickroom {
+    background:
+      radial-gradient(circle at 68% 16%, rgba(244,247,255,0.42), transparent 18%),
+      linear-gradient(180deg, #101827, #070a10 52%, #020308);
+  }
+  .day1 {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(230,239,255,0.22), transparent 20%),
+      linear-gradient(180deg, #141b28, #07080e);
+  }
+  .work {
+    background:
+      linear-gradient(180deg, rgba(35,49,64,0.82), rgba(8,10,14,0.98)),
+      repeating-linear-gradient(0deg, transparent 0 64px, rgba(255,255,255,0.06) 64px 66px);
+  }
+  .park {
+    background:
+      radial-gradient(circle at 22% 22%, rgba(222,197,120,0.3), transparent 23%),
+      linear-gradient(180deg, #18271e, #07090a 70%);
+  }
+  .cafe {
+    background:
+      radial-gradient(circle at 50% 18%, rgba(189,139,92,0.26), transparent 18%),
+      linear-gradient(180deg, #241913, #090606 68%);
+  }
+  .emergency {
+    background:
+      radial-gradient(circle at 50% 12%, rgba(250,250,255,0.36), transparent 16%),
+      linear-gradient(90deg, rgba(52,8,18,0.72), transparent 24%, rgba(9,18,38,0.88) 66%, rgba(240,247,255,0.2)),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.09) 0 2px, transparent 2px 58px),
+      linear-gradient(180deg, #111827, #030408 72%);
+    filter: saturate(0.85) contrast(1.08);
+  }
+  .album {
+    background:
+      radial-gradient(circle at 24% 20%, rgba(255,245,220,0.22), transparent 20%),
+      linear-gradient(180deg, #1e1820, #08060a);
+  }
+  .morning {
+    background:
+      radial-gradient(circle at 65% 12%, rgba(255,245,210,0.34), transparent 24%),
+      linear-gradient(180deg, #1b2530, #08090c 62%);
+  }
+  .funeral {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(210,120,74,0.24), transparent 24%),
+      linear-gradient(180deg, #221714, #050305 70%);
+    filter: saturate(0.75);
+  }
+  .ending {
+    background:
+      radial-gradient(circle at 50% 30%, rgba(255,255,255,0.14), transparent 28%),
+      linear-gradient(180deg, #11131b, #030306);
+  }
+  .title-layer {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 28px;
+    text-align: center;
+    z-index: 4;
+  }
+  .logo {
+    font-size: clamp(48px, 16vw, 92px);
+    letter-spacing: 0.12em;
+    text-shadow: 0 0 26px rgba(255,255,255,0.34), 5px 5px 0 rgba(0,0,0,0.8);
+    margin-bottom: 32px;
+  }
+  .mode-buttons, .choice-box, .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(100%, 560px);
+    margin: 0 auto;
+  }
+  .text-window {
+    position: absolute;
+    left: clamp(16px, 5vw, 56px);
+    right: clamp(16px, 5vw, 56px);
+    top: clamp(28px, 8vh, 72px);
+    z-index: 5;
+    min-height: 170px;
+    padding: 20px 22px 24px;
+    background: rgba(0,0,0,0.54);
+    border: 2px solid rgba(255,255,255,0.72);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.7), 0 18px 42px rgba(0,0,0,0.44);
+  }
+  .chapter-label {
+    color: rgba(255,255,255,0.68);
+    font-size: 14px;
+    letter-spacing: 0.16em;
+    margin-bottom: 12px;
+  }
+  .text {
+    font-size: clamp(18px, 4.8vw, 28px);
+    line-height: 1.78;
+    white-space: pre-line;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.9);
+  }
+  .next {
+    display: inline-block;
+    margin-left: 8px;
+    animation: blink 0.8s steps(1) infinite;
+  }
+  .choice-box {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(22px, 7vh, 64px);
+    transform: translateX(-50%);
+    z-index: 6;
+    padding: 0 18px;
+  }
+  .btn {
+    width: 100%;
+    border: 2px solid rgba(255,255,255,0.86);
+    background: rgba(0,0,0,0.72);
+    color: #fff;
+    padding: 14px 16px;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.72);
+  }
+  .btn:hover, .btn:focus {
+    background: rgba(255,255,255,0.92);
+    color: #05070c;
+    outline: none;
+  }
+  .btn::before { content: "▶ "; }
+  .reflection {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(18px, 5vh, 42px);
+    transform: translateX(-50%);
+    z-index: 7;
+    width: min(calc(100% - 32px), 620px);
+    padding: 18px;
+    background: rgba(0,0,0,0.78);
+    border: 2px solid rgba(255,255,255,0.78);
+  }
+  .reflection p {
+    font-size: 17px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 86px;
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.56);
+    padding: 12px;
+    resize: none;
+    outline: none;
+  }
+  .ending-panel {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    overflow-y: auto;
+    padding: 44px 20px 64px;
+    background: rgba(0,0,0,0.28);
+  }
+  .ending-card {
+    width: min(100%, 680px);
+    margin: 0 auto;
+    padding: 22px;
+    background: rgba(0,0,0,0.7);
+    border: 2px solid rgba(255,255,255,0.78);
+  }
+  .ending-card h1 {
+    font-size: clamp(28px, 8vw, 46px);
+    margin-bottom: 18px;
+  }
+  .ending-card h2 {
+    font-size: 20px;
+    margin: 26px 0 12px;
+  }
+  .ending-card p, .ending-card li {
+    font-size: 17px;
+    line-height: 1.85;
+  }
+  .ending-card ul {
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    margin: 12px 0 24px;
+  }
+  .ending-card li::before { content: "□ "; }
+  .cta {
+    display: block;
+    text-decoration: none;
+    text-align: center;
+    color: #05070c;
+    background: #fff;
+    border: 2px solid #fff;
+    padding: 15px 18px;
+    margin-top: 18px;
+  }
+  .hide { display: none; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (max-height: 680px) {
+    .text-window { top: 18px; min-height: 132px; padding: 16px; }
+    .text { font-size: 18px; line-height: 1.62; }
+    .chapter-label { margin-bottom: 8px; }
+  }
+</style>
+</head>
+<body>
+<div id="game" class="screen" aria-live="polite">
+  <div id="bg" class="bg hospital-hall"></div>
+  <div id="titleLayer" class="title-layer hide">
+    <div>
+      <div class="logo">LAST SAVE</div>
+      <div class="mode-buttons">
+        <button class="btn" data-mode="self">自分の人生を振り返る</button>
+        <button class="btn" data-mode="family">家族との時間を残す</button>
+      </div>
+    </div>
+  </div>
+  <div id="textWindow" class="text-window">
+    <div id="label" class="chapter-label">OPENING</div>
+    <div id="text" class="text"></div>
+  </div>
+  <div id="choices" class="choice-box hide"></div>
+  <div id="reflection" class="reflection hide">
+    <p id="reflectionQuestion"></p>
+    <textarea id="reflectionInput" placeholder="ここに言葉を残す（空欄でも進めます）"></textarea>
+    <button id="reflectionNext" class="btn" style="margin-top:12px;">記録して次へ</button>
+  </div>
+  <div id="endingPanel" class="ending-panel hide"></div>
+</div>
+
+<script>
+const opening = {
+  label: "OPENING",
+  bg: "ordinary-night",
+  lines: [
+    "その日は、いつも通りの一日だった。",
+    "朝、少し寝坊して、冷めたコーヒーを飲んだ。",
+    "通知を流し見して、仕事の返事をひとつ返した。",
+    "駅へ向かう道も、コンビニの光も、昨日と何も変わらない。",
+    "夕方、横断歩道の手前で胸の奥が強く締めつけられた。",
+    "息を吸おうとしても、空気が入ってこない。",
+    "視界の端が、黒くにじんでいく。",
+    "誰かが駆け寄る声がした。",
+    "スマホが手から滑り落ちる音だけが、やけにはっきり聞こえた。",
+    "次に目を開けると、病院の天井があった。",
+    "白い光。",
+    "消毒液の匂い。",
+    "遠くで鳴る心電図。",
+    "検査結果ですが……",
+    "正直にお伝えします。",
+    "……",
+    "残された時間は、長くありません。",
+    "おそらく、3ヶ月です。",
+    "やり残したことは、ありませんか？"
+  ]
+};
+
+const chapters = [
+  {
+    id: 1, label: "DAY1", bg: "day1", title: "宣告の翌朝",
+    lines: [
+      "朝、目が覚めた。",
+      "カーテンの隙間から光が入ってくる。",
+      "いつもと同じ朝のはずだった。",
+      "昨日、医師に言われた言葉が、まだ頭の中で鳴っている。",
+      "スマートフォンが震えた。お母さんから着信。"
+    ],
+    choices: [
+      { text: "今すぐ電話に出る", impact: "family", result: "母の声が、いつもより少し低かった。\nあなたはまだ、言葉が出なかった。\n沈黙の中で、電話口の母が泣いているのが分かった。" },
+      { text: "「あとで電話する」とだけ送る", impact: "solo", result: "「了解」の三文字を打った。\n自分の指が、少し震えていた。\nスマホを伏せて、天井を見た。" },
+      { text: "電話を切って、一人でいる", impact: "solo", result: "着信が切れた。\n部屋はとても静かだった。\n自分の呼吸だけが聞こえた。" }
+    ],
+    reflection: "今日、あなたが真っ先に会いたい人は誰ですか？"
+  },
+  {
+    id: 2, label: "3週間後", bg: "work", title: "日常が溶けていく",
+    lines: [
+      "会社に「しばらく休む」と伝えた翌朝。",
+      "久しぶりに昼まで眠った。",
+      "窓から差し込む光が、なぜか眩しかった。",
+      "こんな時間があったんだ、と思った。",
+      "上司からメールが届く。「無理せず。いつでも戻ってこい。」"
+    ],
+    choices: [
+      { text: "「ありがとうございます」と返信する", impact: "gratitude", result: "キーボードを打ちながら思った。\nこんな言葉を、真剣に書いたことがあっただろうか。\n送信ボタンを押すと、少し胸が軽くなった。" },
+      { text: "返信しない。今は自分のことだけ", impact: "solo", result: "メールを閉じた。\n窓の外の雲が、ゆっくりと流れていった。\nこれでいいんだ、と思った。" },
+      { text: "電話して、本当のことを話す", impact: "honest", result: "「実は……」と話し始めると、上司は最後まで黙って聞いてくれた。\n「そうか」という一言が、なぜか泣けた。" }
+    ],
+    reflection: "仕事や役割を全部外したとき、あなたは何者ですか？"
+  },
+  {
+    id: 3, label: "折り返し", bg: "park", title: "半分が過ぎた",
+    lines: [
+      "残り45日。",
+      "体の変化を感じ始めた。",
+      "階段を上がると、少し息が切れる。",
+      "子どもの頃よく行った公園の前を、今日たまたま通った。",
+      "平日の昼。ベンチには誰もいない。"
+    ],
+    choices: [
+      { text: "ベンチに座って、昔を思い出す", impact: "memory", result: "砂場で転んで泣いた日。\n自転車に初めて乗れた日。\n親に怒られた夏の夕方。\nあの頃の自分が、すぐそこにいる気がした。" },
+      { text: "子どもや家族に電話する", impact: "family", result: "「ねえ、今どこにいると思う？」\n電話の向こうで笑ってくれた。\nその声が、今日一番の薬だった。" },
+      { text: "やりたいことをメモし始める", impact: "action", result: "スマホのメモ帳に書き始めた。\n書いていくうちに気づいた。\n意外と、まだできることがある。" }
+    ],
+    reflection: "10歳の自分に、今一つだけ言葉をかけるとしたら？"
+  },
+  {
+    id: 4, label: "残り1ヶ月", bg: "emergency", title: "予定より早い夜",
+    lines: [
+      "残り28日。",
+      "久しぶりに兄弟と会った。",
+      "昔はよく喧嘩した。",
+      "最後に素直に話したのは、いつだっただろう。",
+      "二人で、静かな喫茶店にいる。",
+      "何か言おうとした瞬間、胸の奥が強く縮んだ。",
+      "息を吸っても、途中で止まる。",
+      "テーブルの木目が、ぐにゃりと歪んで見えた。",
+      "兄弟の声が遠くなる。",
+      "救急車の音。",
+      "白い天井。",
+      "医師の声。",
+      "「このままだと、今夜を越えられないかもしれません」",
+      "手術室の光が、まぶしすぎて目を閉じた。",
+      "次に目を開けたとき、朝だった。",
+      "手術で、なんとか一命を取り留めたらしい。",
+      "残り28日という数字が、急に信用できなくなった。",
+      "兄弟が、椅子に座ったまま眠っている。",
+      "言えなかった言葉が、喉の奥で重くなる。"
+    ],
+    choices: [
+      { text: "「ありがとう」と伝える", impact: "gratitude", result: "目を覚ましたあなたに気づいて、兄弟が立ち上がった。\n声はうまく出なかった。\nそれでも「ありがとう」と言うと、相手は笑おうとして失敗した。\nその目が、少し赤かった。" },
+      { text: "「ごめん」と伝える", impact: "forgive", result: "「何の話？」と言いながら、兄弟はベッドの横に座った。\nあなたの手に、そっと触れた。\n手術室に入る前、言えなかった一言が、ようやく形になった。" },
+      { text: "いつも通りに話す", impact: "peace", result: "「水、飲む？」\nそんな普通の言葉から始まった。\n昔の話、天気の話、くだらない話。\n普通って、失いかけて初めて、こんなに眩しい。" }
+    ],
+    reflection: "今すぐ「ごめん」か「ありがとう」を伝えたい人はいますか？"
+  },
+  {
+    id: 5, label: "残り2週間", bg: "album", title: "準備",
+    lines: [
+      "残り14日。",
+      "医師から「準備を」と言われた。",
+      "部屋の片付けをしていたら、古いアルバムが出てきた。",
+      "色褪せた写真。",
+      "あの頃の自分が、笑っている。"
+    ],
+    choices: [
+      { text: "家族と一緒に見る", impact: "family", result: "「これ、いつ？」\n「覚えてない」\n笑いながら、泣いた。\n泣きながら、笑った。" },
+      { text: "一人でゆっくり見る", impact: "memory", result: "一枚一枚をめくるたびに、記憶の匂いがした。\n自分は、十分生きていた。\nそう思えた。" },
+      { text: "大切な人に写真を送る", impact: "gratitude", result: "「昔の写真見つけた」と送ったら、すぐ返ってきた。\nその返事が、今日一番の宝物だった。" }
+    ],
+    reflection: "あなたの人生で、一番大切な「瞬間」はいつですか？"
+  },
+  {
+    id: 6, label: "最後の朝", bg: "morning", title: "残り7日",
+    lines: [
+      "朝、目が覚めた。",
+      "窓から光が入ってくる。",
+      "大切な人が、隣で眠っている。",
+      "鳥が鳴いている。",
+      "こんなに朝が静かだったことに、気づいていなかった。"
+    ],
+    choices: [
+      { text: "そっと手を握る", impact: "love", result: "温かかった。\nそれだけで、もう十分だと思った。\nこの人に会えてよかった。" },
+      { text: "「ありがとう」と小さく言う", impact: "gratitude", result: "眠そうな目でこちらを見た。\n「なに？」\n「なんでもない」\nそれでよかった。" },
+      { text: "一人で朝の空気を吸いに行く", impact: "peace", result: "外に出ると、空気が澄んでいた。\n鳥が鳴いていた。\n気づけて、よかった。" }
+    ],
+    reflection: "今日、一番そばにいたい人は誰ですか？その人に何を伝えますか？"
+  }
+];
+
+const endings = {
+  family: { title: "家族のエンディング", text: "あなたは最後まで、大切な人のそばにいることを選んだ。\n「ありがとう」は、思ったより長く生きる。\nあなたの言葉は、きっとまだ、誰かの中で生きている。" },
+  gratitude: { title: "感謝のエンディング", text: "あなたは最後まで、感謝を伝えることを選んだ。\n受け取った人は、きっとあなたのことを忘れない。\nその言葉は、あなたがいなくなっても、生き続ける。" },
+  peace: { title: "静寂のエンディング", text: "あなたは最後まで、自分の内側と向き合った。\n誰かに伝えなくても、心の中で完結することがある。\nそれもまた、美しい生き方だった。" },
+  memory: { title: "記憶のエンディング", text: "あなたは最後まで、記憶と向き合った。\n過去は変えられない。\nでも、どう受け取るかは変えられる。" },
+  default: { title: "あなたのエンディング", text: "あなたは自分なりの90日を生きた。\n後悔も、感謝も、愛も。\nすべてが、あなたの人生の一部だった。" }
+};
+
+const game = document.getElementById("game");
+const bg = document.getElementById("bg");
+const titleLayer = document.getElementById("titleLayer");
+const textWindow = document.getElementById("textWindow");
+const labelEl = document.getElementById("label");
+const textEl = document.getElementById("text");
+const choicesEl = document.getElementById("choices");
+const reflectionEl = document.getElementById("reflection");
+const reflectionQuestion = document.getElementById("reflectionQuestion");
+const reflectionInput = document.getElementById("reflectionInput");
+const reflectionNext = document.getElementById("reflectionNext");
+const endingPanel = document.getElementById("endingPanel");
+
+let mode = "self";
+let phase = "opening";
+let lineIndex = 0;
+let charIndex = 0;
+let currentLines = opening.lines;
+let currentLabel = opening.label;
+let currentBg = opening.bg;
+let chapterIndex = 0;
+let impacts = [];
+let reflections = [];
+let typed = "";
+let timer = null;
+let waitingResult = null;
+
+function setBg(name) {
+  bg.className = `bg ${name}`;
+}
+
+function typeLine() {
+  clearTimeout(timer);
+  const line = currentLines[lineIndex] || "";
+  if (charIndex >= line.length) {
+    textEl.innerHTML = `${line}<span class="next">▶</span>`;
+    return;
+  }
+  typed = line.slice(0, charIndex + 1);
+  textEl.textContent = typed;
+  charIndex += 1;
+  timer = setTimeout(typeLine, 38);
+}
+
+function showScene(label, bgName, lines) {
+  currentLabel = label;
+  currentBg = bgName;
+  currentLines = lines;
+  lineIndex = 0;
+  charIndex = 0;
+  phase = "reading";
+  labelEl.textContent = label;
+  textWindow.classList.remove("hide");
+  titleLayer.classList.add("hide");
+  choicesEl.classList.add("hide");
+  reflectionEl.classList.add("hide");
+  endingPanel.classList.add("hide");
+  setBg(bgName);
+  typeLine();
+}
+
+function showTitle() {
+  phase = "title";
+  setBg("sickroom");
+  textWindow.classList.add("hide");
+  choicesEl.classList.add("hide");
+  reflectionEl.classList.add("hide");
+  titleLayer.classList.remove("hide");
+}
+
+function showChapter() {
+  const ch = chapters[chapterIndex];
+  showScene(`${ch.label} / ${ch.title}`, ch.bg, ch.lines);
+}
+
+function showChoices() {
+  phase = "choice";
+  choicesEl.innerHTML = "";
+  const ch = chapters[chapterIndex];
+  ch.choices.forEach((choice) => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = choice.text;
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      impacts.push(choice.impact);
+      waitingResult = choice.result;
+      choicesEl.classList.add("hide");
+      showScene("RESULT", ch.bg, choice.result.split("\n"));
+      phase = "result";
+    });
+    choicesEl.appendChild(btn);
+  });
+  choicesEl.classList.remove("hide");
+}
+
+function showReflection() {
+  const ch = chapters[chapterIndex];
+  phase = "reflection";
+  reflectionQuestion.textContent = ch.reflection;
+  reflectionInput.value = "";
+  reflectionEl.classList.remove("hide");
+  setTimeout(() => reflectionInput.focus(), 50);
+}
+
+function showFuneral() {
+  const lines = mode === "self"
+    ? [
+      "葬儀の準備をしているのは、あなたが一番愛した人たちだった。",
+      "花を選ぶ手が震えている。",
+      "写真を一枚選ぶのに、一時間かかった。",
+      "部屋の隅に、誰かが置いたコーヒーが冷めていた。",
+      "「あの時もっと、一緒にいればよかった」",
+      "その言葉が、部屋の中に静かに漂っていた。"
+    ]
+    : [
+      "葬儀の準備をしながら、あなたはあの人の声を思い出していた。",
+      "最後に交わした言葉が、何だったか思い出せない。",
+      "昨日のことなのに、もう遠い。",
+      "「あの時もっと、ちゃんと話しておけばよかった」",
+      "その後悔だけが、鮮明に残っていた。"
+    ];
+  showScene("EPILOGUE", "funeral", lines);
+  phase = "funeral";
+}
+
+function getEnding() {
+  const counts = {};
+  impacts.forEach(key => counts[key] = (counts[key] || 0) + 1);
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  return endings[top?.[0]] || endings.default;
+}
+
+function showEnding() {
+  const ending = getEnding();
+  phase = "ending";
+  setBg("ending");
+  textWindow.classList.add("hide");
+  choicesEl.classList.add("hide");
+  reflectionEl.classList.add("hide");
+  const saved = reflections.filter(r => r.text.trim()).map(r => `<p>「${escapeHtml(r.text)}」</p>`).join("");
+  endingPanel.innerHTML = `
+    <div class="ending-card">
+      <h1>${ending.title}</h1>
+      <p>${ending.text.replace(/\n/g, "<br>")}</p>
+      ${saved ? `<h2>あなたが残した言葉</h2>${saved}` : ""}
+      <h2>今日からできること</h2>
+      <ul>
+        <li>今夜、家族と一緒に食事をする</li>
+        <li>ありがとうを、直接言葉で伝える</li>
+        <li>大切な人に電話をかける</li>
+        <li>一緒に写真を撮る</li>
+        <li>大切な人へのメッセージを今日書いておく</li>
+      </ul>
+      <a class="cta" href="https://jaane.net?ref=lastsave" target="_blank" rel="noopener">大切な人にメッセージを遺す</a>
+      <button class="btn" id="restart" style="margin-top:14px;">もう一度プレイする</button>
+    </div>
+  `;
+  endingPanel.classList.remove("hide");
+  document.getElementById("restart").addEventListener("click", restart);
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[ch]));
+}
+
+function advance() {
+  if (phase === "title" || phase === "choice" || phase === "reflection" || phase === "ending") return;
+  const line = currentLines[lineIndex] || "";
+  if (charIndex < line.length) {
+    charIndex = line.length;
+    textEl.innerHTML = `${line}<span class="next">▶</span>`;
+    return;
+  }
+  if (lineIndex < currentLines.length - 1) {
+    lineIndex += 1;
+    charIndex = 0;
+    typeLine();
+    return;
+  }
+  if (currentLabel === "OPENING") {
+    showTitle();
+  } else if (phase === "reading") {
+    showChoices();
+  } else if (phase === "result") {
+    showReflection();
+  } else if (phase === "funeral") {
+    showEnding();
+  }
+}
+
+function restart() {
+  mode = "self";
+  phase = "opening";
+  chapterIndex = 0;
+  impacts = [];
+  reflections = [];
+  showScene(opening.label, opening.bg, opening.lines);
+}
+
+document.querySelectorAll("[data-mode]").forEach(btn => {
+  btn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    mode = btn.dataset.mode;
+    chapterIndex = 0;
+    impacts = [];
+    reflections = [];
+    showChapter();
+  });
+});
+
+reflectionNext.addEventListener("click", (event) => {
+  event.stopPropagation();
+  const ch = chapters[chapterIndex];
+  reflections.push({ chapter: ch.label, text: reflectionInput.value });
+  reflectionEl.classList.add("hide");
+  chapterIndex += 1;
+  if (chapterIndex >= chapters.length) showFuneral();
+  else showChapter();
+});
+
+game.addEventListener("click", advance);
+showScene(opening.label, opening.bg, opening.lines);
+</script>
+</body>
+</html>
