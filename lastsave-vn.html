@@ -56,12 +56,26 @@
       repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0 3px, transparent 3px 78px),
       linear-gradient(#09111f, #02040a);
   }
+  .ordinary-morning {
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.48), rgba(0,0,0,0.18) 46%, rgba(0,0,0,0.72) 100%),
+      radial-gradient(circle at 50% 22%, rgba(255,255,255,0.14), transparent 36%),
+      url("./lastsave-morning.png") center center / cover no-repeat,
+      linear-gradient(180deg, #dce7ee, #586875 72%);
+  }
   .ordinary-night {
     background:
-      radial-gradient(circle at 16% 18%, rgba(255,255,255,0.22), transparent 9%),
-      radial-gradient(circle at 74% 28%, rgba(120,170,255,0.18), transparent 14%),
-      repeating-linear-gradient(90deg, transparent 0 44px, rgba(255,255,255,0.08) 44px 46px),
+      linear-gradient(180deg, rgba(0,0,0,0.58), rgba(0,0,0,0.26) 42%, rgba(0,0,0,0.86) 100%),
+      radial-gradient(circle at 50% 28%, rgba(120,170,255,0.12), transparent 34%),
+      url("./lastsave-opening.png") center center / cover no-repeat,
       linear-gradient(180deg, #121a25, #05070c 68%);
+  }
+  .hospital-wakeup {
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.2) 42%, rgba(0,0,0,0.82) 100%),
+      radial-gradient(circle at 50% 18%, rgba(240,248,255,0.16), transparent 34%),
+      url("./lastsave-hospital.png") center center / cover no-repeat,
+      linear-gradient(180deg, #1a2736, #05070c 70%);
   }
   .sickroom {
     background:
@@ -299,35 +313,35 @@
 <script>
 const opening = {
   label: "OPENING",
-  bg: "ordinary-night",
+  bg: "ordinary-morning",
   lines: [
-    "その日は、いつも通りの一日だった。",
-    "朝、少し寝坊して、冷めたコーヒーを飲んだ。",
-    "通知を流し見して、仕事の返事をひとつ返した。",
-    "駅へ向かう道も、コンビニの光も、昨日と何も変わらない。",
-    "夕方、横断歩道の手前で、ふと足が止まった。",
-    "ん？",
-    "信号の音が、少し遠く聞こえる。",
-    "スマホの画面を見ようとして、文字が一瞬だけぼやけた。",
-    "まばたきをすると、視界が少し暗い。",
-    "疲れているだけだと思った。",
-    "一歩、踏み出そうとした。",
-    "その瞬間、胸の奥が内側から強く押しつぶされた。",
-    "息を吸おうとしても、空気が途中で止まる。",
-    "世界の明かりが、すっと落ちていく。",
-    "暗転。",
-    "誰かが駆け寄る声だけが、遠くで揺れている。",
-    "スマホが手から滑り落ちる音だけが、最後にはっきり聞こえた。",
-    "次に目を開けると、病院の天井があった。",
-    "白い光。",
-    "消毒液の匂い。",
-    "遠くで鳴る心電図。",
-    "検査結果ですが……",
-    "正直にお伝えします。",
-    "……",
-    "残された時間は、長くありません。",
-    "おそらく、3ヶ月です。",
-    "やり残したことは、ありませんか？"
+    { text: "その日は、いつも通りの一日だった。", bg: "ordinary-morning" },
+    { text: "朝、少し寝坊して、冷めたコーヒーを飲んだ。", bg: "ordinary-morning" },
+    { text: "通知を流し見して、仕事の返事をひとつ返した。", bg: "ordinary-morning" },
+    { text: "駅へ向かう道も、コンビニの光も、昨日と何も変わらない。", bg: "ordinary-night" },
+    { text: "夕方、横断歩道の手前で、ふと足が止まった。", bg: "ordinary-night" },
+    { text: "ん？", bg: "ordinary-night" },
+    { text: "信号の音が、少し遠く聞こえる。", bg: "ordinary-night" },
+    { text: "スマホの画面を見ようとして、文字が一瞬だけぼやけた。", bg: "ordinary-night" },
+    { text: "まばたきをすると、視界が少し暗い。", bg: "ordinary-night" },
+    { text: "疲れているだけだと思った。", bg: "ordinary-night" },
+    { text: "一歩、踏み出そうとした。", bg: "ordinary-night" },
+    { text: "その瞬間、胸の奥が内側から強く押しつぶされた。", bg: "ordinary-night" },
+    { text: "息を吸おうとしても、空気が途中で止まる。", bg: "ordinary-night" },
+    { text: "世界の明かりが、すっと落ちていく。", bg: "ordinary-night" },
+    { text: "暗転。", bg: "ordinary-night" },
+    { text: "誰かが駆け寄る声だけが、遠くで揺れている。", bg: "ordinary-night" },
+    { text: "スマホが手から滑り落ちる音だけが、最後にはっきり聞こえた。", bg: "ordinary-night" },
+    { text: "次に目を開けると、病院の天井があった。", bg: "hospital-wakeup" },
+    { text: "白い光。", bg: "hospital-wakeup" },
+    { text: "消毒液の匂い。", bg: "hospital-wakeup" },
+    { text: "遠くで鳴る心電図。", bg: "hospital-wakeup" },
+    { text: "検査結果ですが……", bg: "hospital-wakeup" },
+    { text: "正直にお伝えします。", bg: "hospital-wakeup" },
+    { text: "……", bg: "hospital-wakeup" },
+    { text: "残された時間は、長くありません。", bg: "hospital-wakeup" },
+    { text: "おそらく、3ヶ月です。", bg: "hospital-wakeup" },
+    { text: "やり残したことは、ありませんか？", bg: "hospital-wakeup" }
   ]
 };
 
@@ -483,9 +497,23 @@ function setBg(name) {
   bg.className = `bg ${name}`;
 }
 
+function getLineEntry() {
+  return currentLines[lineIndex] || "";
+}
+
+function getLineText(entry = getLineEntry()) {
+  return typeof entry === "string" ? entry : entry.text;
+}
+
+function getLineBg(entry = getLineEntry()) {
+  return typeof entry === "string" ? currentBg : (entry.bg || currentBg);
+}
+
 function typeLine() {
   clearTimeout(timer);
-  const line = currentLines[lineIndex] || "";
+  const entry = getLineEntry();
+  const line = getLineText(entry);
+  setBg(getLineBg(entry));
   if (charIndex >= line.length) {
     textEl.innerHTML = `${line}<span class="next">▶</span>`;
     return;
@@ -620,7 +648,7 @@ function escapeHtml(str) {
 
 function advance() {
   if (phase === "title" || phase === "choice" || phase === "reflection" || phase === "ending") return;
-  const line = currentLines[lineIndex] || "";
+  const line = getLineText();
   if (charIndex < line.length) {
     charIndex = line.length;
     textEl.innerHTML = `${line}<span class="next">▶</span>`;
